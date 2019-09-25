@@ -1,4 +1,4 @@
-# screenduo4macos (fork of mayorbobster's screenduo4linux driver)
+# ScreenDUO4macOS (fork of mayorbobster's screenduo4linux driver)
 WIP thing, most likely to be unstable
 
 ```
