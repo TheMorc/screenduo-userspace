@@ -1,10 +1,10 @@
 /* original program screenduo4linux written on or before Jun 1 2010 */
 /* geoff@spacevs.com Geoffrey McRae (images)                        */
-/* putpixel, putpixelxl written by Andrei Sokolov 7 Sep 2013       */ 
+/* putpixel, putpixelxl written by Andrei Sokolov 7 Sep 2013        */ 
 /* multiline color text support written by Bob Gill 19 Jun 2016     */
 /* This program is licensed under the GNU GPL v2                    */
-/*Morc 30.8.2019, čas: 00:10 prerábka pre macOS                     */
-/*funkčný port, cca 00:20                                           */
+/* Morc 30.8.2019, čas: 00:10 prerábka pre macOS                    */
+/* funkčný port, cca 00:20                                          */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +23,8 @@
 
 
 #define MAXCHAR 1000
+#define INFO "ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n"
+
 
 typedef struct {
     uint32_t	dCBWSignature;
@@ -77,40 +79,40 @@ typedef struct {
 int hw_init(libusb_device_handle *device) {
     if (libusb_reset_device(device) != 0) {
         libusb_release_interface(device, HID_IF);
-        printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+        printf(INFO);
         printf("\nError: Failed to reset the device\n");
         return 0;
     }
 
     if (libusb_kernel_driver_active(device, HID_IF) == 1 && libusb_detach_kernel_driver(device, HID_IF) != 0) {
-        printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+        printf(INFO);
         printf("\nError: Failed to activate and detatch\n");
         return 0;
     }
 
     if (libusb_set_configuration(device, 1) != 0) {
         libusb_release_interface(device, HID_IF);
-        printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+        printf(INFO);
         printf("\nError: Failed to set configuration\n");
         return 0;
     }
 
     if (libusb_claim_interface(device, HID_IF) != 0) {
-        printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+        printf(INFO);
         printf("\nError: Failed to claim interface\n");
         return 0;
     }
 
     if (libusb_set_interface_alt_setting(device, HID_IF, HID_AS) != 0) {
         libusb_release_interface(device, HID_IF);
-        printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+        printf(INFO);
         printf("\nError: Failed to set alt setting\n");
         return 0;
     }
 
 
     if (libusb_clear_halt(device, HID_WR_EP) != 0) {
-        printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+        printf(INFO);
         printf("\nError: Failed to clear WR halt\n");
         return 0;
     }
@@ -118,7 +120,7 @@ int hw_init(libusb_device_handle *device) {
 
     if (libusb_clear_halt(device, HID_RD_EP) != 0) {
         libusb_release_interface(device, HID_IF);
-        printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+        printf(INFO);
         printf("\nError: Failed to clear RD halt\n");
         return 0;
     }
@@ -135,7 +137,8 @@ void hw_write(struct libusb_transfer *xfer) {
 int dev_read(libusb_device_handle *device, uint8_t *data, unsigned int length) {
     int read = 0;
     if (libusb_bulk_transfer(device, HID_RD_EP, data, length, &read, 2000) != 0) {
-        printf("error reading\n");
+        printf(INFO);
+        printf("Error Reading\n");
         return read;
     }
     return read;
@@ -197,7 +200,7 @@ int dev_write(libusb_device_handle *device, uint8_t *data, unsigned int length) 
 
         libusb_bulk_transfer(device, HID_WR_EP, h, sizeof(h), &wrote, 100);
         if (wrote != sizeof(h)) {
-            printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+            printf(INFO);
         	printf("\nError: Error writing CBW header\n");
             exit(-1);
         }
@@ -218,7 +221,7 @@ int dev_write(libusb_device_handle *device, uint8_t *data, unsigned int length) 
 
         libusb_bulk_transfer(device, HID_WR_EP, f, sizeof(f), &wrote, 100);
         if (wrote != sizeof(f)) {
-            printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+            printf(INFO);
         	printf("\nError: Error writing CBW footer %d\n", wrote);
             exit(-1);
         }
@@ -232,14 +235,6 @@ void putpixel(uint8_t *data, int x, int y, char r, char g, char b) {
     data[(x+y*320)*3] = r;
     data[(x+y*320)*3+1] = g;
     data[(x+y*320)*3+2] = b;
-    //printf("\n%D", (x+y*320)*3);
-    //printf("\n%D", (x+y*320)*3+1);
-    //printf("\n%D", (x+y*320)*3+2);
-    //data[0] = r;
-    //data[3] = r;
-    //data[960] = r;
-    //data[1920] = r;
-    //data[230400] = r;
 }
 
 void putpixelxl(uint8_t *data, int x, int y, char r, char g, char b) {
@@ -267,14 +262,6 @@ void putpixelxl(uint8_t *data, int x, int y, char r, char g, char b) {
     	data[(x*2+(y*2+1)*320)*3+2] = b;
     	data[(x*2+(y*2+1)*320)*3+5] = b;
 	}
-        //
-    //
-    //
-    //data[(x*2+testy*2*320)*3+3] = r;
-    //data[(x*2+testy*2*320)*3+4] = b;
-    //data[(x*2+testy*2*320)*3+5] = g;
-    //printf("%d", x);
-    //printf("%d", (x*2+y*2*320)*3);
 }
 
 int x2d(char x) {
@@ -297,7 +284,7 @@ int main(int argc, char *argv[]) {
     libusb_device_handle	*device;
 
     if (argc < 2) {
-    	printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+        printf(INFO);
     	printf("\nError: Too few arguments given.\nUse: ./duo <anytext>\n");
     	printf("\nFormatting characters:\n\\n - Newline\n\\c<0-E> - Text Color\n\\a<FFFFFF> - Text Color in HEX format supported in lower and also uppercase (example: \aFEA4dC)\n\\p<X>,<Y>, - Puts pixel in current color at X position <0-320> and Y position <0-240> Last comma is required.\n\\b<X1>,<X2>,<Y1>,<Y2>, - Draws a box from X1, Y1 to X2, Y2 position. Last comma is required.\n");
     	printf("\nExamples:\n./duo \"\\affffff\\p20,130,\" - Puts a white pixel at X:20, Y:130\n./duo \"Fred\\n\\c3Barney\" - Prints Fred in white color and Barney in blue color on new line\n");
@@ -309,7 +296,7 @@ int main(int argc, char *argv[]) {
 
     device = libusb_open_device_with_vid_pid(ctx, DEV_VID, DEV_PID);
     if (!device) {
-    	printf("ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n");
+        printf(INFO);
         printf("\nError: Failed to open the device\n");
         return -1;
     }
@@ -337,11 +324,6 @@ int main(int argc, char *argv[]) {
     header->u5	= 0x01; /* no idea */
 
     memset(data, 0x00, sizeof(image) - sizeof(image_t));
-
-    //uint8_t frame;
-   // for(r = 0; r < header->w * header->h * 3; r++)
-    //        data[r] = 55;
-    //    dev_write(device, image, sizeof(image));
     
     int x,y;
     int set;
@@ -449,27 +431,12 @@ int main(int argc, char *argv[]) {
 			c++;
 			nc = 1;
 			break;
-				
-		case('e') :               // test image
-			 c++; 
-			 if(argv[1][c] == '1') {
-			 printf("Yeah!");
-			 printf("%lu", sizeof(image) / sizeof(image[0]));
-			 
-			 FILE * fp;
-   				fp = fopen ("output","w");
-   			    fprintf(fp, "%s", image);
-   			 fclose (fp);
-			 
-			 c++;
-			 break;
-			 
+			
 		case('i') :               // test image
 			c++;
-			printf("Yeah!");
 			int i;
 			char DAL = argv[1][c];
-			char str1[MAXL] = "4";
+			char str1[MAXL] = "5";
     		char str2[MAXL] = ".bmp";
     		char dest[2*MAXL+1] = "";
 
@@ -488,49 +455,58 @@ int main(int argc, char *argv[]) {
     		int height = *(int*)&info[22];
 
     		int size = 3 * width * height;
-    		printf ("\n%d\n", size);
     		unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
     		fread(BMPdata, sizeof(unsigned char), size, f); // read the rest of the data at once
     		fclose(f);
     		
-			//rev3 (BMPdata, 240);
-			
-			
     		for (int riadok = 0; riadok < width; riadok++)
     			{
     				for (int stlpec = 0; stlpec < height; stlpec++)
 					{
-            			//printf("%d %d %d %d %d\n", riadok,stlpec,BMPdata[(riadok+stlpec)],(riadok+stlpec),(riadok*stlpec));
-            			//putpixel - data[(x+y*320)*3] = r;
-            			//putpixel - data[(x+y*320)*3+1] = g;
-            			//output = output_start + ((output_end - output_start) / (input_end - input_start)) * (input - input_start)
+						//treba nám prehodiť poradie riadkov ináč sa obrázok vykreslí v originálnom poradí v BMP obrázku a to je dolehlavou, logicky obrátené zrkadlovo
 						int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
 			 			putpixel(data,riadok,reverse,BMPdata[(riadok+stlpec*320)*3+2],BMPdata[(riadok+stlpec*320)*3+1],BMPdata[(riadok+stlpec*320)*3]); 
     					
     				}
 			}
-			
-    		
             c++;
 			 nc = 1;
 			 break;
+			
+		//Nechajme to na neskôr teda...  je to v stave polofunkčnom
+		case('C') :               // draw pixel
+			c++;char test;while((argv[1][c] != ',')){printf("%d ", test); printf("%c\n", test);test+=argv[1][c];c++;}
+    	    char *bitmap = font8x8_extended[test];
+    	    
+   	 	    //printf("%c\n", bitmap);
+   	 	    printf("%d ", test); printf("%c\n", test);
+   	 	    for (y=0; y < 8; y++) {
+    	        for (x=0; x < 8; x++) {
+    	            set = bitmap[y] & 1 << x;
+    	            //putpixel(data,x+cx*8,y,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            putpixelxl(data,x+cx*8,y+line,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        }
+			}
+			 c++;
+			 nc = 1;
+			 break;	 
 			 
 		case('R') :               // random mess	
 			for(r = 0; r < header->w * header->h * 3; r++)
             	data[r] = rand()%255;
-			 }
 			break;
 		}
 			
-	}
+			
+		}
 		else //Character writing
 		{
-    	    char *bitmap = font8x8_extended[argv[1][c]];
-   	 	    //printf("%s", argv[1]);
+			char *bitmap = font8x8_extended[argv[1][c]];
+   	 	    //printf("%d\n", argv[1][c]);
    	 	    for (y=0; y < 8; y++) {
     	        for (x=0; x < 8; x++) {
     	            set = bitmap[y] & 1 << x;
-    	            //putpixel(data,x+cx*8,y,set ? 255 : 0,set ? 255 : 0,set ? 255 : 0);
+    	            //putpixel(data,x+cx*8,y,set ? red : 0,set ? green : 0,set ? blue : 0);
     	            putpixelxl(data,x+cx*8,y+line,set ? red : 0,set ? green : 0,set ? blue : 0);
     	        }
 			}
