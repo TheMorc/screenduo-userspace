@@ -361,6 +361,48 @@ int main(int argc, char *argv[]) {
 		c++;
 		cc=argv[1][c];
 		switch(cc) { 
+		case('i') :               // test image
+			c++;
+			int i;
+			
+			//char str1[MAXL] = "screen";
+    		//char str2[MAXL] = ".bmp";
+    		//char dest[2*MAXL+1] = "";
+    		//strcpy (dest, str1);
+    		//strcat (dest, str2);
+    		//printf ("\n%s\n", dest);
+    		
+			FILE* f = fopen("screen.bmp", "rb");
+    		unsigned char info[54];
+    		fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
+
+    		// extract image height and width from header
+    		int width = *(int*)&info[18];
+    		int height = *(int*)&info[22];
+
+    		int size = 3 * width * height;
+    		unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
+    		fread(BMPdata, sizeof(unsigned char), size, f); // read the rest of the data at once
+    		fclose(f);
+    		
+    		for (int riadok = 0; riadok < width; riadok++)
+    			{
+    				for (int stlpec = 0; stlpec < height; stlpec++)
+					{
+						//treba nám prehodiť poradie riadkov ináč sa obrázok vykreslí v originálnom poradí v BMP obrázku a to je dolehlavou, logicky obrátené zrkadlovo
+						int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
+			 			//putpixel(data,riadok,reverse,BMPdata[(riadok+stlpec*320)*3+2],BMPdata[(riadok+stlpec*320)*3+1],BMPdata[(riadok+stlpec*320)*3]); 
+			 			//putpixel(uint8_t *data, int x, int y, char r, char g, char b) 
+			 			data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
+    					data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
+    					data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];
+    					
+    				}
+			}
+            c++;
+			 nc = 1;
+			 break;
+		
 		case('n') :
 		          c++;  /* skip over the 'n' to the next character */ 
 			  line+= linespace;  /* linefeed */
@@ -431,47 +473,6 @@ int main(int argc, char *argv[]) {
 			c++;
 			nc = 1;
 			break;
-			
-		case('i') :               // test image
-			c++;
-			int i;
-			char DAL = argv[1][c];
-			char str1[MAXL] = "5";
-    		char str2[MAXL] = ".bmp";
-    		char dest[2*MAXL+1] = "";
-
-    		strcpy (dest, str1);
-    		strcat (dest, str2);
-
-    		printf ("\n%s\n", dest);
-			  
-			  
-			FILE* f = fopen(dest, "rb");
-    		unsigned char info[54];
-    		fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
-
-    		// extract image height and width from header
-    		int width = *(int*)&info[18];
-    		int height = *(int*)&info[22];
-
-    		int size = 3 * width * height;
-    		unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
-    		fread(BMPdata, sizeof(unsigned char), size, f); // read the rest of the data at once
-    		fclose(f);
-    		
-    		for (int riadok = 0; riadok < width; riadok++)
-    			{
-    				for (int stlpec = 0; stlpec < height; stlpec++)
-					{
-						//treba nám prehodiť poradie riadkov ináč sa obrázok vykreslí v originálnom poradí v BMP obrázku a to je dolehlavou, logicky obrátené zrkadlovo
-						int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
-			 			putpixel(data,riadok,reverse,BMPdata[(riadok+stlpec*320)*3+2],BMPdata[(riadok+stlpec*320)*3+1],BMPdata[(riadok+stlpec*320)*3]); 
-    					
-    				}
-			}
-            c++;
-			 nc = 1;
-			 break;
 			
 		//Nechajme to na neskôr teda...  je to v stave polofunkčnom
 		case('C') :               // draw pixel
