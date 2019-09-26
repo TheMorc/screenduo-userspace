@@ -144,6 +144,14 @@ int dev_read(libusb_device_handle *device, uint8_t *data, unsigned int length) {
     return read;
 }
 
+int btn_read(libusb_device_handle *device, uint8_t *data, unsigned int length) {
+    int read = 0;
+    if (libusb_bulk_transfer(device, HID_RD_EP, data, length, &read, 2000) != 0) {
+        return read;
+    }
+    return read;
+}
+
 void dump(uint8_t *data, int len) {
     printf("Dump: %0x\n", len);
     int i;
@@ -231,6 +239,40 @@ int dev_write(libusb_device_handle *device, uint8_t *data, unsigned int length) 
     return pos;
 }
 
+void print_button(char btn_code)
+{
+    printf("Button: ");
+    switch(btn_code) {
+    case 0:
+        printf("Enter\n");
+        break;
+    case 1:
+        printf("Left\n");
+        break;
+    case 2:
+        printf("Right\n");
+        break;
+    case 3:
+        printf("Up\n");
+        break;
+    case 4:
+        printf("Down\n");
+        break;
+    case 6:
+        printf("Back\n");
+        break;
+    case 12:
+        printf("App 1\n");
+        break;
+    case 13:
+        printf("App 2\n");
+        break;
+    default:
+        printf("Unknown: %d\n", btn_code);
+        break;
+	}
+}
+
 void putpixel(uint8_t *data, int x, int y, char r, char g, char b) {
     data[(x+y*320)*3] = r;
     data[(x+y*320)*3+1] = g;
@@ -277,6 +319,83 @@ int x2d(char x) {
 
 enum { MAXL = 64 };
 
+int get_buttons(libusb_device_handle *device) {
+    int r, wrote;
+    int pos = 0;
+    uint8_t tmp[256];
+    uint8_t tmp2[512];
+
+    cbw_t		*cbw;
+    cb_header_t	*header;
+    cb_footer_t	*footer;
+
+    uint8_t h[sizeof(cbw_t) + sizeof(cb_header_t)];
+    uint8_t f[sizeof(cbw_t) + sizeof(cb_footer_t)];
+    cbw	= (cbw_t      *)&h[0];
+    header	= (cb_header_t*)&h[sizeof(cbw_t)];
+    footer  = (cb_footer_t*)&f[sizeof(cbw_t)];
+
+    cbw->dCBWSignature		= 0x43425355;
+    cbw->dCBWTag			= 0xe6abb010;
+    cbw->bmCBWFlags			= 0x80;
+    cbw->bCBWLUN			= 0x00;
+    cbw->bCBWCBLength		= 0x0c;
+    header->u1			= 0x03e7;
+    header->totalSize		= 0;
+    header->index			= 0;
+
+    footer->u1			= 0x03e7;
+    footer->totalSize		= header->totalSize;
+    memset(header->unused, 0, sizeof(header->unused));
+    memset(footer->unused, 0, sizeof(footer->unused));
+
+    int block = 0;
+
+    int copy = 0x100;
+
+    cbw->dCBWDataTransferLength = copy;
+    header->blockSize	= flip32(copy);
+    header->index		= block;
+    header->u2		= 0x0;
+
+    libusb_bulk_transfer(device, HID_WR_EP, h, sizeof(h), &wrote, 100);
+    if (wrote != sizeof(h)) {
+        printf("Error writing CBW header\n");
+        exit(-1);
+    }
+
+    int r_len = btn_read(device, tmp, 256);
+    int tmp_r_len;
+    if (r_len > 0) {
+        while ((tmp_r_len = btn_read(device, tmp2, 512)) > 0) {
+            // this never seems to happen
+        }
+        if (tmp[0] == 3 && tmp[1] == 0 && tmp[2] == 8 && tmp[3] == 0) {
+            if (tmp[4] == r_len) {
+                int n_buttons = tmp[4] - 8;
+                for (int cur_button = 0; cur_button < n_buttons; ++cur_button) {
+                    print_button(tmp[8 + cur_button]);
+                }
+            }
+        }
+    }
+
+    // set fields for the setup packet as needed              
+    uint8_t       bmReqType = 0x02;   // the request type (direction of transfer)
+    uint8_t            bReq = 1;   // the request field for this packet
+    uint16_t           wVal = 0;   // the value field for this packet
+    uint16_t         wIndex = 0x81;   // the index field for this packet
+    unsigned char*   dft = "";   // the data buffer for the in/output data
+    uint16_t           wLen = 0;   // length of this setup packet 
+    unsigned int     to = 0;       // timeout duration (if transfer fails)
+
+    // finished
+    int config = libusb_control_transfer(device,bmReqType,bReq,wVal,wIndex,dft,wLen,to);
+    // a final read, do nothing with result
+    btn_read(device, tmp2, 512);
+
+    return pos;
+}
 
 int main(int argc, char *argv[]) {
     int			r;
@@ -356,12 +475,92 @@ int main(int argc, char *argv[]) {
     int cx = 0;   
     int linespace = 8;  /* line spacing.  8 is small, 10 looks ok */
     
+    
+    if(argv[1] == "--ui")
+	{
+		printf(INFO);
+		printf("Welcome to the experimental interface mode\nVitaj v experimentálnom móde s rozhraním\n");
+		FILE* f = fopen("ui_background.bmp", "rb");
+    		unsigned char info[54];
+    		fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
+
+    		// extract image height and width from header
+    		int width = *(int*)&info[18];
+    		int height = *(int*)&info[22];
+
+    		int size = 230400;
+    		unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
+    		fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
+    		fclose(f);
+    		
+    		for (int riadok = 0; riadok < width; riadok++)
+    			{
+    				for (int stlpec = 0; stlpec < height; stlpec++)
+					{
+						//treba nám prehodiť poradie riadkov ináč sa obrázok vykreslí v originálnom poradí v BMP obrázku a to je dolehlavou, logicky obrátené zrkadlovo
+						int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
+			 			//putpixel(data,riadok,reverse,BMPdata[(riadok+stlpec*320)*3+2],BMPdata[(riadok+stlpec*320)*3+1],BMPdata[(riadok+stlpec*320)*3]); 
+			 			//putpixel(uint8_t *data, int x, int y, char r, char g, char b) 
+			 			data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
+    					data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
+    					data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];
+    					
+    				}
+			}
+    	dev_write(device, image, sizeof(image));
+			
+		while (1) {
+        	get_buttons(device);
+        	
+    	}
+		
+	}
+	else if(argv[1] == "--screen")
+	{
+		printf(INFO);
+		printf("Screen Capture mode\n");
+		while (1) {
+        	get_buttons(device);
+        	FILE* f = fopen("screen.bmp", "rb");
+    		unsigned char info[54];
+    		fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
+
+    		// extract image height and width from header
+    		int width = *(int*)&info[18];
+    		int height = *(int*)&info[22];
+
+    		int size = 230400;
+    		unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
+    		fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
+    		fclose(f);
+    		
+    		for (int riadok = 0; riadok < width; riadok++)
+    			{
+    				for (int stlpec = 0; stlpec < height; stlpec++)
+					{
+						//treba nám prehodiť poradie riadkov ináč sa obrázok vykreslí v originálnom poradí v BMP obrázku a to je dolehlavou, logicky obrátené zrkadlovo
+						int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
+			 			//putpixel(data,riadok,reverse,BMPdata[(riadok+stlpec*320)*3+2],BMPdata[(riadok+stlpec*320)*3+1],BMPdata[(riadok+stlpec*320)*3]); 
+			 			//putpixel(uint8_t *data, int x, int y, char r, char g, char b) 
+			 			data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
+    					data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
+    					data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];
+    					
+    				}
+			}
+			
+    	dev_write(device, image, sizeof(image));
+    	}
+		
+	}
+    
     for (c=0; c < strlen(argv[1]); c++) {
 		if(argv[1][c] == '\\') {         /* broken out for multiple \x items */
 		c++;
 		cc=argv[1][c];
 		switch(cc) { 
-		case('i') :               // test image
+		//Jednoduchý Graphics Mode
+		case('i') :
 			c++;
 			int i;
 			
@@ -380,9 +579,9 @@ int main(int argc, char *argv[]) {
     		int width = *(int*)&info[18];
     		int height = *(int*)&info[22];
 
-    		int size = 3 * width * height;
+    		int size = 230400;
     		unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
-    		fread(BMPdata, sizeof(unsigned char), size, f); // read the rest of the data at once
+    		fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
     		fclose(f);
     		
     		for (int riadok = 0; riadok < width; riadok++)
@@ -403,6 +602,7 @@ int main(int argc, char *argv[]) {
 			 nc = 1;
 			 break;
 		
+		//nový riadok
 		case('n') :
 		          c++;  /* skip over the 'n' to the next character */ 
 			  line+= linespace;  /* linefeed */
@@ -410,7 +610,8 @@ int main(int argc, char *argv[]) {
 		          cx = 0;   /* carriage return */
 			  nl = 1;
 			  break;
-			
+		
+		//farba
 	    case('c') :		
 			c++;  /* skip 1 character */
 			// set text colors (feel free to mix your own)
@@ -433,6 +634,7 @@ int main(int argc, char *argv[]) {
 			nc = 1;
 		break;
 
+		//hex farba
 		case('a') :               // arbitrary color (0-FF)x3
 			  c++;ra=16*x2d(argv[1][c]);      // high red bits
 			  c++;rb=x2d(argv[1][c]);ra+=rb;  // red low+red high 
@@ -445,6 +647,7 @@ int main(int argc, char *argv[]) {
 			  nc = 1;
 			  break;
 
+		//pixel
 		case('p') :               // draw pixel
 			 c++;xpos=0;scale=1;while((argv[1][c] != ',') && (xpos < 320)){xpos=xpos*10;xpos+=(argv[1][c]-48);c++;}
 			 c++;ypos=0;scale=1;while((argv[1][c] != ',') && (ypos < 240)){ypos=ypos*10;ypos+=(argv[1][c]-48);c++;}
@@ -455,7 +658,8 @@ int main(int argc, char *argv[]) {
 			 c++;
 			 nc = 1;
 			 break;
-
+			 
+		//obdĺžnik
 	    case('b') :               // draw box	
 			c++;xa=0;scale=1;while((argv[1][c] != ',') && (xa < 320)){xa=xa*10;xa+=(argv[1][c]-48);c++;}
 			c++;xb=0;scale=1;while((argv[1][c] != ',') && (xb < 320)){xb=xb*10;xb+=(argv[1][c]-48);c++;}
@@ -474,7 +678,7 @@ int main(int argc, char *argv[]) {
 			nc = 1;
 			break;
 			
-		//Nechajme to na neskôr teda...  je to v stave polofunkčnom
+		//diakritika jedna nemožná... Nechajme to na neskôr teda...  je to v stave polofunkčnom
 		case('C') :               // draw pixel
 			c++;char test;while((argv[1][c] != ',')){printf("%d ", test); printf("%c\n", test);test+=argv[1][c];c++;}
     	    char *bitmap = font8x8_extended[test];
@@ -492,6 +696,7 @@ int main(int argc, char *argv[]) {
 			 nc = 1;
 			 break;	 
 			 
+		//náhodné pixely na test
 		case('R') :               // random mess	
 			for(r = 0; r < header->w * header->h * 3; r++)
             	data[r] = rand()%255;
@@ -500,7 +705,7 @@ int main(int argc, char *argv[]) {
 			
 			
 		}
-		else //Character writing
+		else //písanie znakov, nepodporuje diakritiku
 		{
 			char *bitmap = font8x8_extended[argv[1][c]];
    	 	    //printf("%d\n", argv[1][c]);
@@ -512,6 +717,7 @@ int main(int argc, char *argv[]) {
     	        }
 			}
 		}
+		
 		cx++;
 		if ((cx % 20) == 0) line += linespace;  /* text end-of-line crlf */
 		if (line > (linespace * maxlines)) line = 0; /* bottom of screen screenwrap */
