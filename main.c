@@ -14,6 +14,9 @@
 #include "libusb.h"
 #include "font8x8_extended.h"
 
+//UI
+#include <time.h>
+
 #define DEV_VID		0x1043
 #define DEV_PID		0x3100
 #define HID_IF		0x0
@@ -69,12 +72,6 @@ typedef struct {
     uint16_t	u11;
 } __attribute__ ((packed)) image_t;
 
-typedef struct {
-    uint16_t	pixel;
-    uint16_t	r;
-    uint16_t	g;
-    uint16_t	b;
-} __attribute__ ((packed)) BMP_t;
 
 int hw_init(libusb_device_handle *device) {
     if (libusb_reset_device(device) != 0) {
@@ -128,6 +125,7 @@ int hw_init(libusb_device_handle *device) {
     return 1;
 }
 
+//toto zatiaľ vypadá jako nevyužitý kód ktorý sa "teoreticky" na neskór zíde
 void hw_write(struct libusb_transfer *xfer) {
     /* free the data */
     free(xfer->buffer);
@@ -152,17 +150,7 @@ int btn_read(libusb_device_handle *device, uint8_t *data, unsigned int length) {
     return read;
 }
 
-void dump(uint8_t *data, int len) {
-    printf("Dump: %0x\n", len);
-    int i;
-    for(i = 0; i < len; ++i) {
-        printf("%02x ", data[i]);
-        if ((i+1) % 16 == 0) printf("\n"); 
-    }
-    printf("\n");
-}
 
-/* New */
 uint32_t flip32(uint32_t v) {
     return ((v & 0xff000000) >> 24) | ((v & 0xff0000) >> 8) | ((v & 0xff00) << 8) | ((v & 0xff) << 24);
 }
@@ -213,8 +201,6 @@ int dev_write(libusb_device_handle *device, uint8_t *data, unsigned int length) 
             exit(-1);
         }
 		
-		
-		
         r = libusb_bulk_transfer(device, HID_WR_EP, data, copy, &wrote, 0);
         data	+= wrote;
         pos	+= wrote;
@@ -245,6 +231,7 @@ void print_button(char btn_code)
     switch(btn_code) {
     case 0:
         printf("Enter\n");
+        
         break;
     case 1:
         printf("Left\n");
@@ -476,42 +463,49 @@ int main(int argc, char *argv[]) {
     int linespace = 8;  /* line spacing.  8 is small, 10 looks ok */
     
     
-    if(argv[1] == "--ui")
+    if(argv[1] = "--ui")
 	{
 		printf(INFO);
-		printf("Welcome to the experimental interface mode\nVitaj v experimentálnom móde s rozhraním\n");
+		printf("Welcome to the experimental UI mode\nVitaj v experimentálnom móde s UI\n");
 		FILE* f = fopen("ui_background.bmp", "rb");
-    		unsigned char info[54];
-    		fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
-
-    		// extract image height and width from header
-    		int width = *(int*)&info[18];
-    		int height = *(int*)&info[22];
-
-    		int size = 230400;
-    		unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
-    		fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
-    		fclose(f);
+    	fseek(f, 54, SEEK_SET);
+    	int size = 230400;
+    	unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
+    	fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
+    	fclose(f);
     		
-    		for (int riadok = 0; riadok < width; riadok++)
-    			{
-    				for (int stlpec = 0; stlpec < height; stlpec++)
-					{
-						//treba nám prehodiť poradie riadkov ináč sa obrázok vykreslí v originálnom poradí v BMP obrázku a to je dolehlavou, logicky obrátené zrkadlovo
-						int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
-			 			//putpixel(data,riadok,reverse,BMPdata[(riadok+stlpec*320)*3+2],BMPdata[(riadok+stlpec*320)*3+1],BMPdata[(riadok+stlpec*320)*3]); 
-			 			//putpixel(uint8_t *data, int x, int y, char r, char g, char b) 
-			 			data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
-    					data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
-    					data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];
-    					
-    				}
-			}
+    	for (int riadok = 0; riadok < 320; riadok++)
+    		{
+    			for (int stlpec = 0; stlpec < 240; stlpec++)
+				{
+					int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
+					data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
+    				data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
+    				data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];	
+    		}
+		}
     	dev_write(device, image, sizeof(image));
 			
 		while (1) {
-        	get_buttons(device);
-        	
+		   get_buttons(device);
+		   
+  			time_t rawtime;
+  			struct tm * timeinfo;
+
+  			time ( &rawtime );
+  			timeinfo = localtime ( &rawtime );
+  			printf("%s",asctime(timeinfo));
+		   char *bitmap = font8x8_extended[48];
+   	 	    //printf("%d\n", argv[1][c]);
+   	 	    for (y=0; y < 8; y++) {
+    	        for (x=0; x < 8; x++) {
+    	            set = bitmap[y] & 1 << x;
+    	            //putpixel(data,x+cx*8,y,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            putpixelxl(data,x+259,y+1,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        }
+			}
+			dev_write(device, image, sizeof(image));
+			usleep(250000);
     	}
 		
 	}
@@ -520,38 +514,28 @@ int main(int argc, char *argv[]) {
 		printf(INFO);
 		printf("Screen Capture mode\n");
 		while (1) {
-        	get_buttons(device);
+        	//get_buttons(device);
         	FILE* f = fopen("screen.bmp", "rb");
-    		unsigned char info[54];
-    		fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
-
-    		// extract image height and width from header
-    		int width = *(int*)&info[18];
-    		int height = *(int*)&info[22];
-
+    		//unsigned char info[54];
+    		//fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
+    		fseek(f, 54, SEEK_SET);
     		int size = 230400;
     		unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
     		fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
     		fclose(f);
     		
-    		for (int riadok = 0; riadok < width; riadok++)
+    		for (int riadok = 0; riadok < 320; riadok++)
     			{
-    				for (int stlpec = 0; stlpec < height; stlpec++)
+    				for (int stlpec = 0; stlpec < 240; stlpec++)
 					{
-						//treba nám prehodiť poradie riadkov ináč sa obrázok vykreslí v originálnom poradí v BMP obrázku a to je dolehlavou, logicky obrátené zrkadlovo
 						int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
-			 			//putpixel(data,riadok,reverse,BMPdata[(riadok+stlpec*320)*3+2],BMPdata[(riadok+stlpec*320)*3+1],BMPdata[(riadok+stlpec*320)*3]); 
-			 			//putpixel(uint8_t *data, int x, int y, char r, char g, char b) 
 			 			data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
     					data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
     					data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];
-    					
     				}
 			}
-			
     	dev_write(device, image, sizeof(image));
     	}
-		
 	}
     
     for (c=0; c < strlen(argv[1]); c++) {
