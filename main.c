@@ -470,6 +470,7 @@ int main(int argc, char *argv[]) {
 		FILE* f = fopen("ui_background.bmp", "rb");
     	fseek(f, 54, SEEK_SET);
     	int size = 230400;
+		char *bitmap = font8x8_extended[0];
     	unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
     	fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
     	fclose(f);
@@ -484,6 +485,32 @@ int main(int argc, char *argv[]) {
     				data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];	
     		}
 		}
+		
+		bitmap = font8x8_extended[48];
+   	 	    //printf("%d\n", argv[1][c]);
+   	 	    for (y=0; y < 8; y++) {
+    	        for (x=0; x < 8; x++) {
+    	            set = bitmap[y] & 1 << x;
+    	            //putpixel(data,x+cx*8,y,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            putpixelxl(data,x+130,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            putpixelxl(data,x+122,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            
+    	            putpixelxl(data,x+151,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        }
+			}
+			
+		// dvojbodka
+		bitmap = font8x8_extended[58];
+   	 	    //printf("%d\n", argv[1][c]);
+   	 	    for (y=0; y < 8; y++) {
+    	        for (x=0; x < 8; x++) {
+    	            set = bitmap[y] & 1 << x;
+    	            //putpixel(data,x+cx*8,y,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        }
+			}
+		
     	dev_write(device, image, sizeof(image));
 			
 		while (1) {
@@ -495,7 +522,7 @@ int main(int argc, char *argv[]) {
   			time ( &rawtime );
   			timeinfo = localtime ( &rawtime );
   			printf("%s",asctime(timeinfo));
-		   char *bitmap = font8x8_extended[48];
+			bitmap = font8x8_extended[48];
    	 	    //printf("%d\n", argv[1][c]);
    	 	    for (y=0; y < 8; y++) {
     	        for (x=0; x < 8; x++) {
@@ -513,17 +540,23 @@ int main(int argc, char *argv[]) {
 	{
 		printf(INFO);
 		printf("Screen Capture mode\n");
+		
+    	int size = 230400;
+    	unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
+    	int i;
 		while (1) {
-        	//get_buttons(device);
-        	FILE* f = fopen("screen.bmp", "rb");
-    		//unsigned char info[54];
-    		//fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
+        	FILE* f = fopen("screen.bmp", "r");
     		fseek(f, 54, SEEK_SET);
-    		int size = 230400;
-    		unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
     		fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
     		fclose(f);
     		
+    		//for(i = 0; i < size; i += 3)
+    		//{
+            //	data[(i+y*320)] = BMPdata[i+2];
+    		//	data[(i+y*320)+1] = BMPdata[i+1];
+    		//	data[(i+y*320)+2] = BMPdata[i];
+            //}
+            
     		for (int riadok = 0; riadok < 320; riadok++)
     			{
     				for (int stlpec = 0; stlpec < 240; stlpec++)
