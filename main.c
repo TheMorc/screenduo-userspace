@@ -225,8 +225,7 @@ int dev_write(libusb_device_handle *device, uint8_t *data, unsigned int length) 
     return pos;
 }
 
-void print_button(char btn_code)
-{
+void print_button(char btn_code){
     printf("Button: ");
     switch(btn_code) {
     case 0:
@@ -418,6 +417,7 @@ int main(int argc, char *argv[]) {
 
     image_t *header = (image_t*)image;
     uint8_t	*data	= image + sizeof(image_t);
+    uint8_t	*tempdata	= image + sizeof(image_t);
 
     header->u1	= 0x02;
     header->u2	= 0xf0;
@@ -426,10 +426,11 @@ int main(int argc, char *argv[]) {
     header->y	= 0;
     header->w	= 320;
     header->h	= 240;
-    header->length	= sizeof(image_t) + (header->w * header->h * 3);
+    header->length	= sizeof(image_t) + (320 * 240 * 3);
     header->u5	= 0x01; /* no idea */
 
     memset(data, 0x00, sizeof(image) - sizeof(image_t));
+    memset(tempdata, 0x00, sizeof(image) - sizeof(image_t));
     
     int x,y;
     int set;
@@ -486,20 +487,6 @@ int main(int argc, char *argv[]) {
     		}
 		}
 		
-		bitmap = font8x8_extended[48];
-   	 	    //printf("%d\n", argv[1][c]);
-   	 	    for (y=0; y < 8; y++) {
-    	        for (x=0; x < 8; x++) {
-    	            set = bitmap[y] & 1 << x;
-    	            //putpixel(data,x+cx*8,y,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	            putpixelxl(data,x+130,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	            putpixelxl(data,x+122,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	            
-    	            putpixelxl(data,x+151,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	            putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        }
-			}
-			
 		// dvojbodka
 		bitmap = font8x8_extended[58];
    	 	    //printf("%d\n", argv[1][c]);
@@ -512,26 +499,41 @@ int main(int argc, char *argv[]) {
 			}
 		
     	dev_write(device, image, sizeof(image));
-			
+		
 		while (1) {
-		   get_buttons(device);
+			get_buttons(device);
 		   
-  			time_t rawtime;
-  			struct tm * timeinfo;
-
-  			time ( &rawtime );
-  			timeinfo = localtime ( &rawtime );
-  			printf("%s",asctime(timeinfo));
-			bitmap = font8x8_extended[48];
-   	 	    //printf("%d\n", argv[1][c]);
+  			
+    		time_t rawtime = time(NULL);
+    		struct tm *ptm = localtime(&rawtime);
+    		printf("%02d:%02d\n", ptm->tm_hour, ptm->tm_min);
+  			
+			int ascii = (int) ptm->tm_sec;
+			printf("%d",ptm->tm_sec);
+			bitmap = font8x8_extended[68];
    	 	    for (y=0; y < 8; y++) {
     	        for (x=0; x < 8; x++) {
     	            set = bitmap[y] & 1 << x;
-    	            //putpixel(data,x+cx*8,y,set ? red : 0,set ? green : 0,set ? blue : 0);
     	            putpixelxl(data,x+259,y+1,set ? red : 0,set ? green : 0,set ? blue : 0);
     	        }
 			}
-			dev_write(device, image, sizeof(image));
+			int i;
+			if(tempdata != data)
+			{
+				dev_write(device, image, sizeof(image));
+				for(i=0; i<230400; i++)
+    			{
+        			tempdata[i] = data[i];
+    			}
+				printf("%hhu ", tempdata);
+
+				printf("%hhu\n", data);
+			}
+			else
+			{
+			
+				printf("asi sme na konci konečne");
+			}
 			usleep(250000);
     	}
 		
