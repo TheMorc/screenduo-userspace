@@ -468,6 +468,8 @@ int main(int argc, char *argv[]) {
 	{
 		printf(INFO);
 		printf("Welcome to the experimental UI mode\nVitaj v experimentálnom móde s UI\n");
+		
+		//vykresli prázdny obrázek
 		FILE* f = fopen("ui_background.bmp", "rb");
     	fseek(f, 54, SEEK_SET);
     	int size = 230400;
@@ -475,7 +477,6 @@ int main(int argc, char *argv[]) {
     	unsigned char* BMPdata = malloc(230400); // allocate 3 bytes per pixel
     	fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
     	fclose(f);
-    		
     	for (int riadok = 0; riadok < 320; riadok++)
     		{
     			for (int stlpec = 0; stlpec < 240; stlpec++)
@@ -486,18 +487,6 @@ int main(int argc, char *argv[]) {
     				data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];	
     		}
 		}
-		
-		// dvojbodka
-		/*bitmap = font8x8_extended[58];
-   	 	    //printf("%d\n", argv[1][c]);
-   	 	for (y=0; y < 8; y++) {
-    	    for (x=0; x < 8; x++) {
-    	        set = bitmap[y] & 1 << x;
-    	            //putpixel(data,x+cx*8,y,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	    }
-		}*/
-		
     	dev_write(device, image, sizeof(image));
 		
 		while (1) {
@@ -519,6 +508,7 @@ int main(int argc, char *argv[]) {
     				data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];	
     			}
 			}
+			
 			//životu prospešná dvojbodka
 			bitmap = font8x8_extended[58];
 			for (y=0; y < 8; y++) {
@@ -541,17 +531,19 @@ int main(int argc, char *argv[]) {
     	        	}
 				}
 				counter++;
-				if(counter != 2){
-				bitmap = font8x8_extended[48];
-   	 	    	for (y=0; y < 8; y++) {
-    	        	for (x=0; x < 8; x++) {
-    	        	    set = bitmap[y] & 1 << x;
-    	        	    putpixelxl(data,x+151-8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        	}
-				}
+				if(counter < 2){
+					bitmap = font8x8_extended[48];
+   	 	    		for (y=0; y < 8; y++) {
+    	        		for (x=0; x < 8; x++) {
+    	        		    set = bitmap[y] & 1 << x;
+    	        		    //toť táto nula pred jednocifernýma čislama ešte moc nejde, uvidíme teda čo povíe čas
+    	        		    //putpixelxl(data,x+151-8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        		}
+					}
 				}
 				ptm->tm_min /= 10;
 			}
+			
 			//hodiny
 			counter = 0;
 			while (ptm->tm_hour > 0) {
@@ -561,12 +553,6 @@ int main(int argc, char *argv[]) {
     	        	for (x=0; x < 8; x++) {
     	        	    set = bitmap[y] & 1 << x;
     	        	    putpixelxl(data,x+130-counter*8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        	    
-    	           //putpixelxl(data,x+130,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	            //putpixelxl(data,x+122,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	            
-    	            //putpixelxl(data,x+151,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	            //putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
     	        	}
 				}
 				counter++;
