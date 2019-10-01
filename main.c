@@ -488,15 +488,15 @@ int main(int argc, char *argv[]) {
 		}
 		
 		// dvojbodka
-		bitmap = font8x8_extended[58];
+		/*bitmap = font8x8_extended[58];
    	 	    //printf("%d\n", argv[1][c]);
-   	 	    for (y=0; y < 8; y++) {
-    	        for (x=0; x < 8; x++) {
-    	            set = bitmap[y] & 1 << x;
+   	 	for (y=0; y < 8; y++) {
+    	    for (x=0; x < 8; x++) {
+    	        set = bitmap[y] & 1 << x;
     	            //putpixel(data,x+cx*8,y,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	            putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        }
-			}
+    	        putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	    }
+		}*/
 		
     	dev_write(device, image, sizeof(image));
 		
@@ -506,21 +506,46 @@ int main(int argc, char *argv[]) {
   			
     		time_t rawtime = time(NULL);
     		struct tm *ptm = localtime(&rawtime);
-    		printf("%02d:%02d\n", ptm->tm_hour, ptm->tm_min);
+    		printf("%02d:%02d - ", ptm->tm_hour, ptm->tm_min);
   			
-			int ascii = (int) ptm->tm_sec;
-			printf("%d",ptm->tm_sec);
-			bitmap = font8x8_extended[68];
-   	 	    for (y=0; y < 8; y++) {
-    	        for (x=0; x < 8; x++) {
-    	            set = bitmap[y] & 1 << x;
-    	            putpixelxl(data,x+259,y+1,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        }
+			int ascii = ptm->tm_sec;
+			
+			printf("%d\n",ptm->tm_sec);
+			for (int riadok = 0; riadok < 320; riadok++)
+    		{
+    			for (int stlpec = 0; stlpec < 240; stlpec++)
+				{
+					int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
+					data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
+    				data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
+    				data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];	
+    			}
 			}
-			int i;
-			if(tempdata != data)
+			bitmap = font8x8_extended[58];
+			for (y=0; y < 8; y++) {
+    	    	for (x=0; x < 8; x++) {
+    	        	set = bitmap[y] & 1 << x;
+    	        	putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	    	}
+			}
+			int counter = 0;
+			while ((int)ascii > 0) {
+				int digit = (int)ascii % 10;
+				bitmap = font8x8_extended[(int)digit+48];
+   	 	    	for (y=0; y < 8; y++) {
+    	        	for (x=0; x < 8; x++) {
+    	        	    set = bitmap[y] & 1 << x;
+    	        	    putpixelxl(data,x+259-counter*8,y+1,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        	}
+				}
+				counter++;
+				ascii /= 10;
+			}
+			
+			//printf("%c",ascii[0]);
+			/*int i;
+			if(tempdata == data)
 			{
-				dev_write(device, image, sizeof(image));
 				for(i=0; i<230400; i++)
     			{
         			tempdata[i] = data[i];
@@ -531,9 +556,11 @@ int main(int argc, char *argv[]) {
 			}
 			else
 			{
-			
+				dev_write(device, image, sizeof(image));
+				
 				printf("asi sme na konci konečne");
-			}
+			}*/
+				dev_write(device, image, sizeof(image));
 			usleep(250000);
     	}
 		
