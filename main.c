@@ -501,16 +501,14 @@ int main(int argc, char *argv[]) {
     	dev_write(device, image, sizeof(image));
 		
 		while (1) {
+			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom decembra kým dorobím všetko ostatné
 			get_buttons(device);
-		   
-  			
+		   	//zisťovanie času, ďalšia to vec potrebná
     		time_t rawtime = time(NULL);
     		struct tm *ptm = localtime(&rawtime);
-    		printf("%02d:%02d - ", ptm->tm_hour, ptm->tm_min);
-  			
-			int ascii = ptm->tm_sec;
-			
-			printf("%d\n",ptm->tm_sec);
+		   
+		   
+		    //životu prospešné UI pozadie
 			for (int riadok = 0; riadok < 320; riadok++)
     		{
     			for (int stlpec = 0; stlpec < 240; stlpec++)
@@ -521,6 +519,7 @@ int main(int argc, char *argv[]) {
     				data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];	
     			}
 			}
+			//životu prospešná dvojbodka
 			bitmap = font8x8_extended[58];
 			for (y=0; y < 8; y++) {
     	    	for (x=0; x < 8; x++) {
@@ -528,18 +527,50 @@ int main(int argc, char *argv[]) {
     	        	putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
     	    	}
 			}
+			
+			//kreslenie času
+			//minúty
 			int counter = 0;
-			while ((int)ascii > 0) {
-				int digit = (int)ascii % 10;
-				bitmap = font8x8_extended[(int)digit+48];
+			while (ptm->tm_min > 0) {
+				int digit = ptm->tm_min % 10;
+				bitmap = font8x8_extended[digit+48];
    	 	    	for (y=0; y < 8; y++) {
     	        	for (x=0; x < 8; x++) {
     	        	    set = bitmap[y] & 1 << x;
-    	        	    putpixelxl(data,x+259-counter*8,y+1,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        	    putpixelxl(data,x+151-counter*8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
     	        	}
 				}
 				counter++;
-				ascii /= 10;
+				if(counter != 2){
+				bitmap = font8x8_extended[48];
+   	 	    	for (y=0; y < 8; y++) {
+    	        	for (x=0; x < 8; x++) {
+    	        	    set = bitmap[y] & 1 << x;
+    	        	    putpixelxl(data,x+151-8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        	}
+				}
+				}
+				ptm->tm_min /= 10;
+			}
+			//hodiny
+			counter = 0;
+			while (ptm->tm_hour > 0) {
+				int digit = ptm->tm_hour % 10;
+				bitmap = font8x8_extended[digit+48];
+   	 	    	for (y=0; y < 8; y++) {
+    	        	for (x=0; x < 8; x++) {
+    	        	    set = bitmap[y] & 1 << x;
+    	        	    putpixelxl(data,x+130-counter*8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        	    
+    	           //putpixelxl(data,x+130,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            //putpixelxl(data,x+122,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            
+    	            //putpixelxl(data,x+151,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	            //putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        	}
+				}
+				counter++;
+				ptm->tm_hour /= 10;
 			}
 			
 			//printf("%c",ascii[0]);
