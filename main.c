@@ -490,13 +490,14 @@ int main(int argc, char *argv[]) {
     	dev_write(device, image, sizeof(image));
 		
 		while (1) {
-			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom novembra kým dorobím všetko ostatné
+			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom decembra kým dorobím všetko ostatné
 			get_buttons(device);
 		   	//zisťovanie času, ďalšia to vec potrebná
     		time_t rawtime = time(NULL);
     		struct tm *ptm = localtime(&rawtime);
+    		struct tm *ptma = localtime(&rawtime);
 		   
-		   	
+		   
 		    //životu prospešné UI pozadie
 			for (int riadok = 0; riadok < 320; riadok++)
     		{
@@ -550,7 +551,7 @@ int main(int argc, char *argv[]) {
    	 	    	for (y=0; y < 8; y++) {
     	       		 for (x=0; x < 8; x++) {
     	       		 	set = bitmap[y] & 1 << x;
-    	       	 	    putpixelxl(data,x+151-8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	       	 	    putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
     	       		 }
 				}
 			}
@@ -560,14 +561,13 @@ int main(int argc, char *argv[]) {
    	 	    	for (y=0; y < 8; y++) {
     	        	for (x=0; x < 8; x++) {
     	        		set = bitmap[y] & 1 << x;
-    	       		 	putpixelxl(data,x+151-8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	       		 	putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
     	        	}
 				}
 			}
 			
 			//hodiny
 			counter = 0;
-			digit = 0;
 			while (ptm->tm_hour > 0) {
 				int digit = ptm->tm_hour % 10;
 				bitmap = font8x8_extended[digit+48];
@@ -618,12 +618,13 @@ int main(int argc, char *argv[]) {
     		fread(BMPdata, sizeof(unsigned char), 230400, f); // read the rest of the data at once
     		fclose(f);
     		
-    		//for(i = 0; i < size; i += 3)
-    		//{
-            //	data[(i+y*320)] = BMPdata[i+2];
-    		//	data[(i+y*320)+1] = BMPdata[i+1];
-    		//	data[(i+y*320)+2] = BMPdata[i];
-            //}
+    		//táto metóda je teoreticky rýchlejšia ale má problém že obrázek rve naopak, možno sa k tomuto niekedy vrátim a závadu opravím inak
+    		/*for(i = 0; i < size; i += 3)
+    		{
+            	data[(i+y*320)] = BMPdata[i+2];
+    			data[(i+y*320)+1] = BMPdata[i+1];
+    			data[(i+y*320)+2] = BMPdata[i];
+            }*/
             
     		for (int riadok = 0; riadok < 320; riadok++)
     			{
