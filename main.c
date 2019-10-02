@@ -490,7 +490,7 @@ int main(int argc, char *argv[]) {
     	dev_write(device, image, sizeof(image));
 		
 		while (1) {
-			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom decembra kým dorobím všetko ostatné
+			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom novembra kým dorobím všetko ostatné
 			get_buttons(device);
 		   	//zisťovanie času, ďalšia to vec potrebná
     		time_t rawtime = time(NULL);
@@ -522,25 +522,47 @@ int main(int argc, char *argv[]) {
 			//minúty
 			int counter = 0;
 			while (ptm->tm_min > 0) {
+				int repeats = 0;
 				int digit = ptm->tm_min % 10;
-				bitmap = font8x8_extended[digit+48];
-   	 	    	for (y=0; y < 8; y++) {
-    	        	for (x=0; x < 8; x++) {
-    	        	    set = bitmap[y] & 1 << x;
-    	        	    putpixelxl(data,x+151-counter*8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        	}
-				}
 				counter++;
-				if(counter < 2){
+				printf("repeats %d\n",repeats);
+				if (counter == 1){
+					printf("counter1 %d, digit %d\n",counter, digit);
+					bitmap = font8x8_extended[digit+48];
+   	 	    		for (y=0; y < 8; y++) {
+    	        		for (x=0; x < 8; x++) {
+    	        		    set = bitmap[y] & 1 << x;
+    	       		 	    putpixelxl(data,x+151,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        		}
+					}
+				}
+				
+				printf("repeats %d\n",repeats);
+				if (counter == 2){
+					printf("counter2 %d, digit %d\n",counter, digit);
+					bitmap = font8x8_extended[digit+48];
+   	 	    		for (y=0; y < 8; y++) {
+    	       		 	for (x=0; x < 8; x++) {
+    	       		 	    set = bitmap[y] & 1 << x;
+    	       	 	    	putpixelxl(data,x+151-8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	       		 	}
+					}
+				}
+				else
+				{
+					if(repeats != digit){
+					printf("counter2 %d, digit %d\n",counter, digit);
 					bitmap = font8x8_extended[48];
    	 	    		for (y=0; y < 8; y++) {
     	        		for (x=0; x < 8; x++) {
     	        		    set = bitmap[y] & 1 << x;
-    	        		    //toť táto nula pred jednocifernýma čislama ešte moc nejde, uvidíme teda čo povíe čas
-    	        		    //putpixelxl(data,x+151-8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        		}
+    	       		 	    putpixelxl(data,x+151-8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        			}
+					}
 					}
 				}
+				repeats = digit;
+				printf("repeats %d\n\n",repeats);
 				ptm->tm_min /= 10;
 			}
 			
