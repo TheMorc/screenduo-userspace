@@ -490,7 +490,7 @@ int main(int argc, char *argv[]) {
     	dev_write(device, image, sizeof(image));
 		
 		while (1) {
-			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom necembra kým dorobím všetko ostatné
+			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom novembra kým dorobím všetko ostatné
 			get_buttons(device);
 		   	//zisťovanie času, ďalšia to vec potrebná
     		time_t rawtime = time(NULL);
