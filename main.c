@@ -579,7 +579,15 @@ int main(int argc, char *argv[]) {
 				counter++;
 				ptm->tm_hour /= 10;
 			}
-			
+			if (counter == 0){
+				bitmap = font8x8_extended[48];
+   	 	    	for (y=0; y < 8; y++) {
+    	        	for (x=0; x < 8; x++) {
+    	        		set = bitmap[y] & 1 << x;
+    	       		 	putpixelxl(data,x+130,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	        		}
+				}
+			}
 			//printf("%c",ascii[0]);
 			/*int i;
 			if(tempdata == data)
