@@ -305,7 +305,7 @@ void putpixelxl(uint8_t *data, int x, int y, char r, char g, char b) {
 void puticon(uint8_t *data, int x, int y, char file) {
 			  
 		printf("vitaj puticon\n");
-		FILE* f = fopen("9.bmp", "r");
+		FILE* f = fopen("8.bmp", "r");
 		printf("súbor prečítaný\n");
     	unsigned char info[54];
     	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
@@ -325,15 +325,33 @@ void puticon(uint8_t *data, int x, int y, char file) {
     			for (int stlpec = 0; stlpec < height; stlpec++)
 				{
 					int reverse = (height-1) + ((0 - (height-1)) / ((height-1) - 0)) * (stlpec - 0);
-					//data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*(width+1))*3];
-					data[88320] = BMPdata[0];
+					data[((riadok+x)+(y+reverse)*320)*3] = BMPdata[(riadok+stlpec*(width+1))*3+2];
+					data[((riadok+x)+(y+reverse)*320)*3+1] = BMPdata[(riadok+stlpec*(width+1))*3+1];
+					data[((riadok+x)+(y+reverse)*320)*3+2] = BMPdata[(riadok+stlpec*(width+1))*3];
+					
+					
+					data[1] = BMPdata[0];
+					//data[1*3] = BMPdata[17385];
+					//data[320*3] = BMPdata[17574];
+					//data[323*3] = BMPdata[17577];
+					
+					/*62,92 88 506 = 26 130
+					63,92 88 509 = 26 133
+					62,93 89 466 = 26 412
+					63,93 89 469 = 26 415
+					*/
+					
+					
+					
+					/*data[88320] = BMPdata[0];
 					data[88323] = BMPdata[3];
 					data[87360] = BMPdata[192];
 					data[87363] = BMPdata[195];
-					//0,0 88 320 = 0
-					//1,0 88 323 = 3
-					//0,1 87 360 = 192
-					//1,1 87 363 = 195
+					0,0 88 320 = 0
+					1,0 88 323 = 3
+					0,1 87 360 = 192
+					1,1 87 363 = 195*/
+					
 					//bmpdata 17577
 					
 					//data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*(width+1))*3];
@@ -348,6 +366,8 @@ void puticon(uint8_t *data, int x, int y, char file) {
     		}
 		}
     
+					size_t total = sizeof(BMPdata[0]);
+    				printf ("data: %zu\n", total);
     
     
 }
@@ -571,7 +591,7 @@ int main(int argc, char *argv[]) {
 		   			printf("%d\n",animation_);
 		   		}else{
 		   			printf("móžeme začať renderuvať čas!\n");
-		   			puticon(data,0,0,"1.bmp");
+		   			puticon(data,55,23,"1.bmp");
 		   		}
             	
             	//data[r] = data[r]-5; toto robí dosť trippy póžitek..
