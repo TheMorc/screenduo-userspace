@@ -27,7 +27,8 @@
 
 #define MAXCHAR 1000
 #define INFO "ASUS ScreenDUO\nFOSS Application based driver for ASUS ScreenDUO on macOS\n"
-
+int screensaver_enabled = 0;
+int animation_ = 0;
 
 typedef struct {
     uint32_t	dCBWSignature;
@@ -249,6 +250,15 @@ void print_button(char btn_code){
         break;
     case 12:
         printf("App 1\n");
+        if(screensaver_enabled == 1) {
+        screensaver_enabled = 0;
+        animation_ = 0;
+        }
+        else
+        {
+        screensaver_enabled = 1;
+        }
+        printf("screensaver_enabled %d\n", screensaver_enabled);
         break;
     case 13:
         printf("App 2\n");
@@ -290,6 +300,56 @@ void putpixelxl(uint8_t *data, int x, int y, char r, char g, char b) {
     	data[(x*2+(y*2+1)*320)*3+2] = b;
     	data[(x*2+(y*2+1)*320)*3+5] = b;
 	}
+}
+
+void puticon(uint8_t *data, int x, int y, char file) {
+			  
+		printf("vitaj puticon\n");
+		FILE* f = fopen("9.bmp", "r");
+		printf("súbor prečítaný\n");
+    	unsigned char info[54];
+    	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
+		printf("header prejdený\n");
+		
+    	// extract image height and width from header
+    	int width = *(int*)&info[18];
+    	int height = *(int*)&info[22];
+		printf("%d,%d\n",width,height);
+    	int size = 3 * width * height;
+    	unsigned char* BMPdata = malloc(3 * width * height); // allocate 3 bytes per pixel
+    	fread(BMPdata, sizeof(unsigned char), size, f); // read the rest of the data at once
+    	fclose(f);
+    		
+		for (int riadok = 0; riadok < width; riadok++)
+    		{
+    			for (int stlpec = 0; stlpec < height; stlpec++)
+				{
+					int reverse = (height-1) + ((0 - (height-1)) / ((height-1) - 0)) * (stlpec - 0);
+					//data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*(width+1))*3];
+					data[88320] = BMPdata[0];
+					data[88323] = BMPdata[3];
+					data[87360] = BMPdata[192];
+					data[87363] = BMPdata[195];
+					//0,0 88 320 = 0
+					//1,0 88 323 = 3
+					//0,1 87 360 = 192
+					//1,1 87 363 = 195
+					//bmpdata 17577
+					
+					//data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*(width+1))*3];
+					//data[(riadok+stlpec*(width))*3] = BMPdata[(riadok+stlpec*width-1)*3+2];
+    				
+    				
+    				
+    				//data[(riadok+reverse*(320-width))*3+1] = BMPdata[(riadok+stlpec*width)*3+1];
+    				//data[(riadok+reverse*(320-width))*3+2] = BMPdata[(riadok+stlpec*width)*3];	
+    				
+    				//data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
+    		}
+		}
+    
+    
+    
 }
 
 int x2d(char x) {
@@ -489,14 +549,40 @@ int main(int argc, char *argv[]) {
 		}
     	dev_write(device, image, sizeof(image));
 		
+		animation_ = 0;
+		screensaver_enabled = 1;
 		while (1) {
 			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom novembra kým dorobím všetko ostatné
 			get_buttons(device);
+		   	
+		   	//gýčové zisťovanie stavu zapnutého šetriča, uvidíme čo z tohoto vznikne
+		   	//dúfam že to toto aj pôjde
+
+		   	if(screensaver_enabled == 1)
+		   	{
+		   		if(animation_ != 10){
+		   			for(r = 0; r < header->w * header->h * 3; r++){
+		   				if(data[r] >= 30)
+		   					data[r] = data[r]-24;
+		   				if (data[r] <= 30)
+		   					data[r] = 0;
+		   			}
+		   			animation_++;
+		   			printf("%d\n",animation_);
+		   		}else{
+		   			printf("móžeme začať renderuvať čas!\n");
+		   			puticon(data,0,0,"1.bmp");
+		   		}
+            	
+            	//data[r] = data[r]-5; toto robí dosť trippy póžitek..
+            	
+		   	}else{
 		   	//zisťovanie času, ďalšia to vec potrebná
     		time_t rawtime = time(NULL);
     		struct tm *ptm = localtime(&rawtime);
 		   
-		   
+		   	
+		   	
 		    //životu prospešné UI pozadie
 			for (int riadok = 0; riadok < 320; riadok++)
     		{
@@ -536,6 +622,7 @@ int main(int argc, char *argv[]) {
 				}
 				ptm->tm_min /= 10;
 			}
+			//toť je nula
 			if (counter == 0){
 				bitmap = font8x8_extended[48];
    	 	    	for (y=0; y < 8; y++) {
@@ -545,6 +632,7 @@ int main(int argc, char *argv[]) {
     	        		}
 				}
 			}
+			//prvé číslo minúty
 			if (counter == 2){
 				bitmap = font8x8_extended[digit+48];
    	 	    	for (y=0; y < 8; y++) {
@@ -554,7 +642,7 @@ int main(int argc, char *argv[]) {
     	       		 }
 				}
 			}
-			else
+			else //prvé číslo minúty, nula
 			{
 				bitmap = font8x8_extended[48];
    	 	    	for (y=0; y < 8; y++) {
@@ -565,7 +653,7 @@ int main(int argc, char *argv[]) {
 				}
 			}
 			
-			//hodiny
+			//hodiny,samé o sebe
 			counter = 0;
 			while (ptm->tm_hour > 0) {
 				int digit = ptm->tm_hour % 10;
@@ -579,6 +667,7 @@ int main(int argc, char *argv[]) {
 				counter++;
 				ptm->tm_hour /= 10;
 			}
+			//nula v prípade že je 0:0–59
 			if (counter == 0){
 				bitmap = font8x8_extended[48];
    	 	    	for (y=0; y < 8; y++) {
@@ -587,6 +676,8 @@ int main(int argc, char *argv[]) {
     	       		 	putpixelxl(data,x+130,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
     	        		}
 				}
+			}
+			
 			}
 			//printf("%c",ascii[0]);
 			/*int i;
@@ -607,7 +698,9 @@ int main(int argc, char *argv[]) {
 				printf("asi sme na konci konečne");
 			}*/
 				dev_write(device, image, sizeof(image));
+			
 			usleep(250000);
+			
     	}
 		
 	}
