@@ -304,14 +304,14 @@ void putpixelxl(uint8_t *data, int x, int y, char r, char g, char b) {
 
 void puticon(uint8_t *data, int x, int y, char file) {
 			  
-		FILE* f = fopen("8.bmp", "r"); //otvoriť súbor
+		FILE* f = fopen("ss_0.bmp", "r"); //otvoriť súbor
     	unsigned char info[54];
     	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
 
     	// extract image height and width from header
     	int width = *(int*)&info[18];
     	int height = *(int*)&info[22];
-		printf("%d,%d\n",width,height);
+		//printf("%d,%d\n",width,height); toť toto písalo veľkosť obrázku, čil to netreba
 		
 		//po dlhom dumaní som prišiel k záveru že môj obrázek je od pixel širší jak by mal byť, je to vec divná ale šak čo už, hádam to opraví šecko alebo rozbije šecko
     	int size = 0;
@@ -553,19 +553,61 @@ int main(int argc, char *argv[]) {
 		   					data[r] = 0;
 		   			}
 		   			animation_++;
-		   			printf("%d\n",animation_);
 		   		}else{
-		   			printf("móžeme začať renderuvať čas!\n");
-		   			puticon(data,55,23,"1.bmp");
+		   			/*puticon(data,18,72,"1.bmp");
+		   			puticon(data,84,72,"1.bmp");
+		   			puticon(data,173,72,"1.bmp");
+		   			puticon(data,239,72,"1.bmp");*/
+		   			
+		   			//zisťovanie času, ďalšia to vec potrebná
+    				time_t rawtime = time(NULL);
+    				struct tm *ptm = localtime(&rawtime);
+		
+				
+					//minúty
+					int counter = 0;
+					int digit = 0;
+					
+					while (ptm->tm_min > 0) {
+						digit = ptm->tm_min % 10;
+						counter++;
+						//if (counter == 1){
+						//bitmap = font8x8_extended[digit+48];	
+						ptm->tm_min /= 10;
+					}
+						
+					//toť je nula
+					if (counter == 0){
+		   				puticon(data,239,72,"1.bmp");
+					}
+					//prvé číslo minúty
+					if (counter == 2){
+						//bitmap = font8x8_extended[digit+48];
+   	 	    	
+					}
+					else //prvé číslo minúty, nula
+					{
+		   				puticon(data,173,72,"1.bmp");
+					}
+			
+					//hodiny,samé o sebe
+					counter = 0;
+					
+					while (ptm->tm_hour > 0) {
+						int digit = ptm->tm_hour % 10;
+						//bitmap = font8x8_extended[digit+48];
+						counter++;
+						ptm->tm_hour /= 10;
+					}
+					//nula v prípade že je 0:0–59
+					if (counter == 0){
+		   				puticon(data,84,72,"1.bmp");
+					}
+		   			
 		   		}
-            	
-            	//data[r] = data[r]-5; toto robí dosť trippy póžitek..
+		   		//data[r] = data[r]-5; toto robí dosť trippy póžitek..
             	
 		   	}else{
-		   	//zisťovanie času, ďalšia to vec potrebná
-    		time_t rawtime = time(NULL);
-    		struct tm *ptm = localtime(&rawtime);
-		   
 		   	
 		   	
 		    //životu prospešné UI pozadie
@@ -588,6 +630,12 @@ int main(int argc, char *argv[]) {
     	        	putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
     	    	}
 			}
+			
+			//zisťovanie času, ďalšia to vec potrebná
+    		time_t rawtime = time(NULL);
+    		struct tm *ptm = localtime(&rawtime);
+		   
+		   	
 			
 			//kreslenie času
 			//minúty
