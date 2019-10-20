@@ -304,19 +304,23 @@ void putpixelxl(uint8_t *data, int x, int y, char r, char g, char b) {
 
 void puticon(uint8_t *data, int x, int y, char file) {
 			  
-		printf("vitaj puticon\n");
-		FILE* f = fopen("8.bmp", "r");
-		printf("súbor prečítaný\n");
+		FILE* f = fopen("8.bmp", "r"); //otvoriť súbor
     	unsigned char info[54];
     	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
-		printf("header prejdený\n");
-		
+
     	// extract image height and width from header
     	int width = *(int*)&info[18];
     	int height = *(int*)&info[22];
 		printf("%d,%d\n",width,height);
-    	int size = 3 * width * height;
-    	unsigned char* BMPdata = malloc(3 * width * height); // allocate 3 bytes per pixel
+		
+		//po dlhom dumaní som prišiel k záveru že môj obrázek je od pixel širší jak by mal byť, je to vec divná ale šak čo už, hádam to opraví šecko alebo rozbije šecko
+    	int size = 0;
+    	if(width % 2 == 0)
+        	size = 3 * width * height;
+    	else
+        	size = 3 * (width+1) * height;
+        	
+    	unsigned char* BMPdata = malloc(size); // allocate 3 bytes per pixel
     	fread(BMPdata, sizeof(unsigned char), size, f); // read the rest of the data at once
     	fclose(f);
     		
@@ -328,47 +332,8 @@ void puticon(uint8_t *data, int x, int y, char file) {
 					data[((riadok+x)+(y+reverse)*320)*3] = BMPdata[(riadok+stlpec*(width+1))*3+2];
 					data[((riadok+x)+(y+reverse)*320)*3+1] = BMPdata[(riadok+stlpec*(width+1))*3+1];
 					data[((riadok+x)+(y+reverse)*320)*3+2] = BMPdata[(riadok+stlpec*(width+1))*3];
-					
-					
-					data[1] = BMPdata[0];
-					//data[1*3] = BMPdata[17385];
-					//data[320*3] = BMPdata[17574];
-					//data[323*3] = BMPdata[17577];
-					
-					/*62,92 88 506 = 26 130
-					63,92 88 509 = 26 133
-					62,93 89 466 = 26 412
-					63,93 89 469 = 26 415
-					*/
-					
-					
-					
-					/*data[88320] = BMPdata[0];
-					data[88323] = BMPdata[3];
-					data[87360] = BMPdata[192];
-					data[87363] = BMPdata[195];
-					0,0 88 320 = 0
-					1,0 88 323 = 3
-					0,1 87 360 = 192
-					1,1 87 363 = 195*/
-					
-					//bmpdata 17577
-					
-					//data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*(width+1))*3];
-					//data[(riadok+stlpec*(width))*3] = BMPdata[(riadok+stlpec*width-1)*3+2];
-    				
-    				
-    				
-    				//data[(riadok+reverse*(320-width))*3+1] = BMPdata[(riadok+stlpec*width)*3+1];
-    				//data[(riadok+reverse*(320-width))*3+2] = BMPdata[(riadok+stlpec*width)*3];	
-    				
-    				//data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
     		}
 		}
-    
-					size_t total = sizeof(BMPdata[0]);
-    				printf ("data: %zu\n", total);
-    
     
 }
 
