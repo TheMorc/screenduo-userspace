@@ -554,10 +554,16 @@ int main(int argc, char *argv[]) {
 		   			}
 		   			animation_++;
 		   		}else{
+		   			
+		   			//originál pozície minút a hodín bez dvojbodky v polopooondenom stave
 		   			/*puticon(data,18,72,"1.bmp");
 		   			puticon(data,84,72,"1.bmp");
 		   			puticon(data,173,72,"1.bmp");
 		   			puticon(data,239,72,"1.bmp");*/
+		   			
+		   			for(r = 0; r < header->w * header->h * 3; r++){
+		   					data[r] = 0;
+		   			}
 		   			
 		   			//zisťovanie času, ďalšia to vec potrebná
     				time_t rawtime = time(NULL);
