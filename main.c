@@ -302,9 +302,11 @@ void putpixelxl(uint8_t *data, int x, int y, char r, char g, char b) {
 	}
 }
 
-void puticon(uint8_t *data, int x, int y, char file) {
-			  
-		FILE* f = fopen("ss_0.bmp", "r"); //otvoriť súbor
+void puticon(uint8_t *data, int x, int y, char *filename) {
+   		char fileSpec[strlen(filename)+1];
+    	snprintf(fileSpec, sizeof(fileSpec), "%s", filename);
+		FILE* f = fopen(fileSpec, "r"); //otvoriť súbor
+		
     	unsigned char info[54];
     	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
 
@@ -565,179 +567,217 @@ int main(int argc, char *argv[]) {
 		   					data[r] = 0;
 		   			}
 		   			
+		   			puticon(data,129,72,"ss_c.bmp");
+		   			//zisťovanie času, ďalšia to vec potrebná
+    			time_t rawtime = time(NULL);
+    			struct tm *ptm = localtime(&rawtime);
+		   
+		   	
+			
+				//kreslenie času
+				//minúty
+				int counter = 0;
+				int digit = 0;
+				while (ptm->tm_min > 0) {
+				digit = ptm->tm_min % 10;
+				counter++;
+				if (counter == 1){
+						char fname[9];
+    					snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+		   				puticon(data,239,72,fname);
+					}
+					ptm->tm_min /= 10;
+				}
+				//toť je nula
+				if (counter == 0){
+					puticon(data,239,72,"ss_0.bmp");
+				}
+				//prvé číslo minúty
+				if (counter == 2){
+					char fname[9];
+    				snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+		   			puticon(data,173,72,fname);
+				}
+				else //prvé číslo minúty, nula
+				{
+					puticon(data,173,72,"ss_0.bmp");
+				}
+				
+				//hodiny,samé o sebe
+				counter = 0;
+				while (ptm->tm_hour > 0) {
+					int digit = ptm->tm_hour % 10;
+					char fname[9];
+    				snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+		   			puticon(data,84-counter*66,72,fname);
+					counter++;
+					ptm->tm_hour /= 10;
+				}
+				//nula v prípade že je 0:0–59
+				if (counter == 0){
+					puticon(data,84,72,"ss_0.bmp");
+				}
+				if (counter == 1){
+					puticon(data,18,72,"ss_n.bmp");
+				}
+		   			
+		   			/*
 		   			//zisťovanie času, ďalšia to vec potrebná
     				time_t rawtime = time(NULL);
-    				struct tm *ptm = localtime(&rawtime);
-		
-				
+    				struct tm *ptm = localtime(&rawtime);	
+			
+					//kreslenie času
 					//minúty
 					int counter = 0;
 					int digit = 0;
-					
 					while (ptm->tm_min > 0) {
 						digit = ptm->tm_min % 10;
 						counter++;
-						//if (counter == 1){
-						//bitmap = font8x8_extended[digit+48];	
-						ptm->tm_min /= 10;
-					}
+						if (counter == 1){
+							char fname[9];
+    						snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+		   					puticon(data,239-counter*66,72,fname);
+							ptm->tm_min /= 10;
+						}
+						//toť je nula
+						if (counter == 0){
+		   					puticon(data,239,72,"ss_0.bmp");
+						}
+						//prvé číslo minúty
+						if (counter == 2){
+							char fname[9];
+    						snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+		   					puticon(data,173-counter*66,72,fname);
+						}
+						else //prvé číslo minúty, nula
+						{
+		   					//puticon(data,173,72,"ss_0.bmp");
+						}
 						
-					//toť je nula
-					if (counter == 0){
-		   				puticon(data,239,72,"1.bmp");
-					}
-					//prvé číslo minúty
-					if (counter == 2){
-						//bitmap = font8x8_extended[digit+48];
-   	 	    	
-					}
-					else //prvé číslo minúty, nula
-					{
-		   				puticon(data,173,72,"1.bmp");
-					}
-			
-					//hodiny,samé o sebe
-					counter = 0;
-					
-					while (ptm->tm_hour > 0) {
-						int digit = ptm->tm_hour % 10;
-						//bitmap = font8x8_extended[digit+48];
-						counter++;
-						ptm->tm_hour /= 10;
-					}
-					//nula v prípade že je 0:0–59
-					if (counter == 0){
-		   				puticon(data,84,72,"1.bmp");
-					}
-		   			
-		   		}
+						//hodiny,samé o sebe
+						counter = 0;
+						while (ptm->tm_hour > 0) {
+							int digit = ptm->tm_hour % 10;
+							char fname[9];
+    						snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+		   					puticon(data,84-counter*66,72,fname);
+							counter++;
+							ptm->tm_hour /= 10;
+						}
+						//nula v prípade že je 0:0–59
+						if (counter == 0){
+		   					//puticon(data,84,72,"ss_0.bmp");
+						}
+					}*/
+				}
 		   		//data[r] = data[r]-5; toto robí dosť trippy póžitek..
             	
 		   	}else{
 		   	
-		   	
-		    //životu prospešné UI pozadie
-			for (int riadok = 0; riadok < 320; riadok++)
-    		{
-    			for (int stlpec = 0; stlpec < 240; stlpec++)
-				{
-					int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
-					data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
-    				data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
-    				data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];	
-    			}
-			}
+				//životu prospešné UI pozadie
+				for (int riadok = 0; riadok < 320; riadok++)
+    			{
+    				for (int stlpec = 0; stlpec < 240; stlpec++)
+					{
+						int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
+						data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
+    					data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
+    					data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];	
+    				}
+				}
+				
+				//životu prospešná dvojbodka
+				bitmap = font8x8_extended[58];
+				for (y=0; y < 8; y++) {
+    	   		 	for (x=0; x < 8; x++) {
+    	   	 	    	set = bitmap[y] & 1 << x;
+    	   		     	putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	   		 	}
+				}
 			
-			//životu prospešná dvojbodka
-			bitmap = font8x8_extended[58];
-			for (y=0; y < 8; y++) {
-    	    	for (x=0; x < 8; x++) {
-    	        	set = bitmap[y] & 1 << x;
-    	        	putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	    	}
-			}
-			
-			//zisťovanie času, ďalšia to vec potrebná
-    		time_t rawtime = time(NULL);
-    		struct tm *ptm = localtime(&rawtime);
+				//zisťovanie času, ďalšia to vec potrebná
+    			time_t rawtime = time(NULL);
+    			struct tm *ptm = localtime(&rawtime);
 		   
 		   	
 			
-			//kreslenie času
-			//minúty
-			int counter = 0;
-			int digit = 0;
-			while (ptm->tm_min > 0) {
+				//kreslenie času
+				//minúty
+				int counter = 0;
+				int digit = 0;
+				while (ptm->tm_min > 0) {
 				digit = ptm->tm_min % 10;
 				counter++;
 				if (counter == 1){
-					bitmap = font8x8_extended[digit+48];
+						bitmap = font8x8_extended[digit+48];
+   	 	    			for (y=0; y < 8; y++) {
+    	    	    		for (x=0; x < 8; x++) {
+    	    	    		    set = bitmap[y] & 1 << x;
+    	    	   		 	    putpixelxl(data,x+151,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	    	    		}
+						}
+					}
+					ptm->tm_min /= 10;
+				}
+				//toť je nula
+				if (counter == 0){
+					bitmap = font8x8_extended[48];
    	 	    		for (y=0; y < 8; y++) {
-    	        		for (x=0; x < 8; x++) {
-    	        		    set = bitmap[y] & 1 << x;
-    	       		 	    putpixelxl(data,x+151,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        		}
+    	    	    	for (x=0; x < 8; x++) {
+    	    	    		set = bitmap[y] & 1 << x;
+    	    	   		 	putpixelxl(data,x+151,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	    	    	}
 					}
 				}
-				ptm->tm_min /= 10;
-			}
-			//toť je nula
-			if (counter == 0){
-				bitmap = font8x8_extended[48];
-   	 	    	for (y=0; y < 8; y++) {
-    	        	for (x=0; x < 8; x++) {
-    	        		set = bitmap[y] & 1 << x;
-    	       		 	putpixelxl(data,x+151,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        		}
+				//prvé číslo minúty
+				if (counter == 2){
+					bitmap = font8x8_extended[digit+48];
+   	 	    		for (y=0; y < 8; y++) {
+    	    	   		 for (x=0; x < 8; x++) {
+    	    	   		 	set = bitmap[y] & 1 << x;
+    	    	   	 	    putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	    	   		 }
+					}
 				}
-			}
-			//prvé číslo minúty
-			if (counter == 2){
-				bitmap = font8x8_extended[digit+48];
-   	 	    	for (y=0; y < 8; y++) {
-    	       		 for (x=0; x < 8; x++) {
-    	       		 	set = bitmap[y] & 1 << x;
-    	       	 	    putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	       		 }
+				else //prvé číslo minúty, nula
+				{
+					bitmap = font8x8_extended[48];
+   	 	    		for (y=0; y < 8; y++) {
+    	    	    	for (x=0; x < 8; x++) {
+    	    	    		set = bitmap[y] & 1 << x;
+    	    	   		 	putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	    	    	}
+					}
 				}
-			}
-			else //prvé číslo minúty, nula
-			{
-				bitmap = font8x8_extended[48];
-   	 	    	for (y=0; y < 8; y++) {
-    	        	for (x=0; x < 8; x++) {
-    	        		set = bitmap[y] & 1 << x;
-    	       		 	putpixelxl(data,x+143,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        	}
-				}
-			}
-			
-			//hodiny,samé o sebe
-			counter = 0;
-			while (ptm->tm_hour > 0) {
-				int digit = ptm->tm_hour % 10;
-				bitmap = font8x8_extended[digit+48];
-   	 	    	for (y=0; y < 8; y++) {
-    	        	for (x=0; x < 8; x++) {
-    	        	    set = bitmap[y] & 1 << x;
-    	        	    putpixelxl(data,x+130-counter*8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        	}
-				}
-				counter++;
-				ptm->tm_hour /= 10;
-			}
-			//nula v prípade že je 0:0–59
-			if (counter == 0){
-				bitmap = font8x8_extended[48];
-   	 	    	for (y=0; y < 8; y++) {
-    	        	for (x=0; x < 8; x++) {
-    	        		set = bitmap[y] & 1 << x;
-    	       		 	putpixelxl(data,x+130,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
-    	        		}
-				}
-			}
-			
-			}
-			//printf("%c",ascii[0]);
-			/*int i;
-			if(tempdata == data)
-			{
-				for(i=0; i<230400; i++)
-    			{
-        			tempdata[i] = data[i];
-    			}
-				printf("%hhu ", tempdata);
-
-				printf("%hhu\n", data);
-			}
-			else
-			{
-				dev_write(device, image, sizeof(image));
 				
-				printf("asi sme na konci konečne");
-			}*/
-				dev_write(device, image, sizeof(image));
+				//hodiny,samé o sebe
+				counter = 0;
+				while (ptm->tm_hour > 0) {
+					int digit = ptm->tm_hour % 10;
+					bitmap = font8x8_extended[digit+48];
+   	 	    		for (y=0; y < 8; y++) {
+    	   		     	for (x=0; x < 8; x++) {
+    	   		     	    set = bitmap[y] & 1 << x;
+    	   		     	    putpixelxl(data,x+130-counter*8,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	   		     	}
+					}
+					counter++;
+					ptm->tm_hour /= 10;
+				}
+				//nula v prípade že je 0:0–59
+				if (counter == 0){
+					bitmap = font8x8_extended[48];
+   	 	   		 	for (y=0; y < 8; y++) {
+    	   		     	for (x=0; x < 8; x++) {
+    	   		     		set = bitmap[y] & 1 << x;
+    	   	    		 	putpixelxl(data,x+130,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	   		     		}
+					}
+				}
 			
+			}
+			
+			dev_write(device, image, sizeof(image));
 			usleep(250000);
 			
     	}
