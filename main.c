@@ -306,6 +306,7 @@ void puticon(uint8_t *data, int x, int y, char *filename) {
    		char fileSpec[strlen(filename)+1];
     	snprintf(fileSpec, sizeof(fileSpec), "%s", filename);
 		FILE* f = fopen(fileSpec, "r"); //otvoriť súbor
+		//FILE* f = fopen("ss_0.bmp", "r"); //otvoriť súbor
 		
     	unsigned char info[54];
     	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
@@ -316,7 +317,7 @@ void puticon(uint8_t *data, int x, int y, char *filename) {
 		//printf("%d,%d\n",width,height); toť toto písalo veľkosť obrázku, čil to netreba
 		
 		//po dlhom dumaní som prišiel k záveru že môj obrázek je od pixel širší jak by mal byť, je to vec divná ale šak čo už, hádam to opraví šecko alebo rozbije šecko
-    	int size = 0;
+    	int size;
     	if(width % 2 == 0)
         	size = 3 * width * height;
     	else
@@ -336,7 +337,7 @@ void puticon(uint8_t *data, int x, int y, char *filename) {
 					data[((riadok+x)+(y+reverse)*320)*3+2] = BMPdata[(riadok+stlpec*(width+1))*3];
     		}
 		}
-    
+    	free(BMPdata);
 }
 
 int x2d(char x) {
