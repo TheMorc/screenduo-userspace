@@ -306,7 +306,6 @@ void puticon(uint8_t *data, int x, int y, char *filename) {
    		char fileSpec[strlen(filename)+1];
     	snprintf(fileSpec, sizeof(fileSpec), "%s", filename);
 		FILE* f = fopen(fileSpec, "r"); //otvoriť súbor
-		//FILE* f = fopen("ss_0.bmp", "r"); //otvoriť súbor
 		
     	unsigned char info[54];
     	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
@@ -558,74 +557,21 @@ int main(int argc, char *argv[]) {
 		   			animation_++;
 		   		}else{
 		   			
-		   			//originál pozície minút a hodín bez dvojbodky v polopooondenom stave
-		   			/*puticon(data,18,72,"1.bmp");
-		   			puticon(data,84,72,"1.bmp");
-		   			puticon(data,173,72,"1.bmp");
-		   			puticon(data,239,72,"1.bmp");*/
-		   			
+		   			//vyčistenie predchádzajúceho framu
 		   			for(r = 0; r < header->w * header->h * 3; r++){
 		   					data[r] = 0;
 		   			}
-		   			
+		   			int dvojbodka;
+		   			//vykreslenie dvojbodky
+		   			if (dvojbodka == 2)
+    				{
 		   			puticon(data,129,72,"ss_c.bmp");
-		   			//zisťovanie času, ďalšia to vec potrebná
-    			time_t rawtime = time(NULL);
-    			struct tm *ptm = localtime(&rawtime);
-		   
-		   	
-			
-				//kreslenie času
-				//minúty
-				int counter = 0;
-				int digit = 0;
-				while (ptm->tm_min > 0) {
-				digit = ptm->tm_min % 10;
-				counter++;
-				if (counter == 1){
-						char fname[9];
-    					snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
-		   				puticon(data,239,72,fname);
-					}
-					ptm->tm_min /= 10;
-				}
-				//toť je nula
-				if (counter == 0){
-					puticon(data,239,72,"ss_0.bmp");
-				}
-				//prvé číslo minúty
-				if (counter == 2){
-					char fname[9];
-    				snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
-		   			puticon(data,173,72,fname);
-				}
-				else //prvé číslo minúty, nula
-				{
-					puticon(data,173,72,"ss_0.bmp");
-				}
-				
-				//hodiny,samé o sebe
-				counter = 0;
-				while (ptm->tm_hour > 0) {
-					int digit = ptm->tm_hour % 10;
-					char fname[9];
-    				snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
-		   			puticon(data,84-counter*66,72,fname);
-					counter++;
-					ptm->tm_hour /= 10;
-				}
-				//nula v prípade že je 0:0–59
-				if (counter == 0){
-					puticon(data,84,72,"ss_0.bmp");
-				}
-				if (counter == 1){
-					puticon(data,18,72,"ss_n.bmp");
-				}
-		   			
-		   			/*
+		   			dvojbodka = 0;
+		   			}
+		   			dvojbodka++;
 		   			//zisťovanie času, ďalšia to vec potrebná
     				time_t rawtime = time(NULL);
-    				struct tm *ptm = localtime(&rawtime);	
+    				struct tm *ptm = localtime(&rawtime);
 			
 					//kreslenie času
 					//minúty
@@ -637,40 +583,44 @@ int main(int argc, char *argv[]) {
 						if (counter == 1){
 							char fname[9];
     						snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
-		   					puticon(data,239-counter*66,72,fname);
-							ptm->tm_min /= 10;
+		   					puticon(data,239,72,fname);
 						}
-						//toť je nula
-						if (counter == 0){
-		   					puticon(data,239,72,"ss_0.bmp");
-						}
-						//prvé číslo minúty
-						if (counter == 2){
-							char fname[9];
-    						snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
-		   					puticon(data,173-counter*66,72,fname);
-						}
-						else //prvé číslo minúty, nula
-						{
-		   					//puticon(data,173,72,"ss_0.bmp");
-						}
-						
-						//hodiny,samé o sebe
-						counter = 0;
-						while (ptm->tm_hour > 0) {
-							int digit = ptm->tm_hour % 10;
-							char fname[9];
-    						snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
-		   					puticon(data,84-counter*66,72,fname);
-							counter++;
-							ptm->tm_hour /= 10;
-						}
-						//nula v prípade že je 0:0–59
-						if (counter == 0){
-		   					//puticon(data,84,72,"ss_0.bmp");
-						}
-					}*/
+						ptm->tm_min /= 10;
+					}
+					//toť je nula
+					if (counter == 0){
+						puticon(data,239,72,"ss_0.bmp");
+					}
+					//prvé číslo minúty
+					if (counter == 2){
+						char fname[9];
+    					snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+		   				puticon(data,173,72,fname);
+					}
+					else //prvé číslo minúty, nula
+					{
+						puticon(data,173,72,"ss_0.bmp");
+					}
+				
+					//hodiny,samé o sebe
+					counter = 0;
+					while (ptm->tm_hour > 0) {
+						int digit = ptm->tm_hour % 10;
+						char fname[9];
+    					snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+		   				puticon(data,84-counter*66,72,fname);
+						counter++;
+						ptm->tm_hour /= 10;
+					}
+					//nula v prípade že je 0:0–59
+					if (counter == 0){
+						puticon(data,84,72,"ss_0.bmp");
+					}
+					if (counter == 1){
+						puticon(data,18,72,"ss_n.bmp");
+					}
 				}
+				
 		   		//data[r] = data[r]-5; toto robí dosť trippy póžitek..
             	
 		   	}else{
