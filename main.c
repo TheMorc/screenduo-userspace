@@ -615,6 +615,7 @@ int main(int argc, char *argv[]) {
 					//nula v prípade že je 0:0–59
 					if (counter == 0){
 						puticon(data,84,72,"ss_0.bmp");
+						puticon(data,18,72,"ss_n.bmp");
 					}
 					if (counter == 1){
 						puticon(data,18,72,"ss_n.bmp");
