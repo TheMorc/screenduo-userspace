@@ -22,4 +22,4 @@ Examples:
 - **[Geoffrey McRae](https://github.com/gnif)** for creating original code
 - **[Andrei Sokolov](https://youtu.be/I2bF9IQN76U)** for adding putpixel, ~~putbigpixel~~ putpixelxl
 - **Bob Gill** for adding multiline color text support
-- **[Ash Hughes](https://github.com/ashh87)** for making (not used now) button code
+- **[Ash Hughes](https://github.com/ashh87)** for making the relatively good and working button code
