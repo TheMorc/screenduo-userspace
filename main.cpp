@@ -12,6 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "libusb.h"
+#include "SDL2/SDL.h"
 #include "font8x8_extended.h"
 
 //UI
@@ -515,6 +516,31 @@ int main(int argc, char *argv[]) {
 		printf(INFO);
 		printf("Welcome to the experimental UI mode\nVitaj v experimentálnom móde s UI\n");
 		
+		
+		
+		//
+        //SDL Emulator
+        //
+		SDL_Init(SDL_INIT_VIDEO);
+		SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
+	
+    	SDL_Window * window = SDL_CreateWindow("ASUS ScreenDUO",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        320, 240,
+        SDL_WINDOW_RESIZABLE);
+
+    	SDL_Surface * window_surface = SDL_GetWindowSurface(window);
+
+    	unsigned int * pixels = (unsigned int*)window_surface->pixels;
+    	int width = window_surface->w;
+    	int height = window_surface->h;
+		//
+        //SDL Emulator
+        //
+		
+		
+		
+		
 		//vykresli prázdny obrázek
 		FILE* f = fopen("ui_background.bmp", "rb");
     	fseek(f, 54, SEEK_SET);
@@ -540,6 +566,31 @@ int main(int argc, char *argv[]) {
 		while (1) {
 			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom novembra kým dorobím všetko ostatné
 			get_buttons(device);
+		   	
+		   	
+		   	//
+        	//SDL Emulator
+        	//
+		   	SDL_Event event;
+        	while (SDL_PollEvent(&event))
+        	{
+            	if (event.type == SDL_QUIT) exit(0);
+            	if (event.type == SDL_WINDOWEVENT)
+            	{
+                	if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+                	{
+                    /*window_surface = SDL_GetWindowSurface(window);
+                    pixels = (unsigned int*)window_surface->pixels;
+                    width = window_surface->w;
+                    height = window_surface->h;*/
+                    	printf("Size changed: %d, %d\n", width, height);
+                	}
+            	}
+        	}
+        	SDL_UpdateWindowSurface(window);
+			//
+        	//SDL Emulator
+        	//
 		   	
 		   	//gýčové zisťovanie stavu zapnutého šetriča, uvidíme čo z tohoto vznikne
 		   	//dúfam že to toto aj pôjde
@@ -729,6 +780,24 @@ int main(int argc, char *argv[]) {
 			}
 			
 			dev_write(device, image, sizeof(image));
+			
+			
+			//
+        	//SDL Emulator
+        	//
+        	for (int y = 0; y < height; ++y)
+        	{
+            	for (int x = 0; x < width; ++x)
+            	{
+                	pixels[x + y * width] = SDL_MapRGB(window_surface->format, data[(x+y*320)*3], data[(x+y*320)*3+1], data[(x+y*320)*3+2]);
+            	}
+        	}
+        	SDL_UpdateWindowSurface(window);
+        	//
+        	//SDL Emulator
+        	//
+        	
+        	
 			usleep(250000);
 			
     	}
@@ -769,6 +838,87 @@ int main(int argc, char *argv[]) {
 			}
     	dev_write(device, image, sizeof(image));
     	}
+	}else if(strcmp(argv[1],"--emu")==0)
+	{
+	char *FBdata = new char[230400]; // allocate 3 bytes per pixel
+	char *BMPdata = new char[230400]; // allocate 3 bytes per pixel
+	FILE* f = fopen("screen.bmp", "r");
+    		fseek(f, 54, SEEK_SET);
+    		fread(BMPdata, sizeof(char), 230400, f); // read the rest of the data at once
+    		fclose(f);
+    		
+    		//táto metóda je teoreticky rýchlejšia ale má problém že obrázek rve naopak, možno sa k tomuto niekedy vrátim a závadu opravím inak
+    		/*for(int i = 0; i < 320; i += 3)
+    		{
+            	data[(i+y*320)] = BMPdata[i+2];
+    			data[(i+y*320)+1] = BMPdata[i+1];
+    			data[(i+y*320)+2] = BMPdata[i];
+            }*/
+            
+            //záhadný prešpekuluvaný spósob prevracania obrázku
+    		for (int riadok = 0; riadok < 320; riadok++)
+    			{
+    				for (int stlpec = 0; stlpec < 240; stlpec++)
+					{
+						int reverse = 239 + ((0 - 239) / (239 - 0)) * (stlpec - 0);
+			 			data[(riadok+reverse*320)*3] = BMPdata[(riadok+stlpec*320)*3+2];
+    					data[(riadok+reverse*320)*3+1] = BMPdata[(riadok+stlpec*320)*3+1];
+    					data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];
+    				}
+			}
+	
+		printf(INFO);
+		printf("Emulated ScreenDUO mode\n");
+		
+		
+		SDL_Init(SDL_INIT_VIDEO);
+		SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
+	
+    	SDL_Window * window = SDL_CreateWindow("ASUS ScreenDUO",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        320, 240,
+        SDL_WINDOW_RESIZABLE);
+
+    	SDL_Surface * window_surface = SDL_GetWindowSurface(window);
+
+    	unsigned int * pixels = (unsigned int*)window_surface->pixels;
+    	int width = window_surface->w;
+    	int height = window_surface->h;
+
+    	//printf("Pixel format: %s\n", SDL_GetPixelFormatName(window_surface->format->format));
+
+    	while (1)
+    	{
+        	SDL_Event event;
+        	while (SDL_PollEvent(&event))
+        	{
+            	if (event.type == SDL_QUIT) exit(0);
+            	if (event.type == SDL_WINDOWEVENT)
+            	{
+                	if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+                	{
+                    /*window_surface = SDL_GetWindowSurface(window);
+                    pixels = (unsigned int*)window_surface->pixels;
+                    width = window_surface->w;
+                    height = window_surface->h;*/
+                    	printf("Size changed: %d, %d\n", width, height);
+                	}
+            	}
+        	}
+
+        	// Set every pixel to white.
+        	for (int y = 0; y < height; ++y)
+        	{
+            	for (int x = 0; x < width; ++x)
+            	{
+                	pixels[x + y * width] = SDL_MapRGB(window_surface->format, data[(x+y*320)*3], data[(x+y*320)*3+1], data[(x+y*320)*3+2]);
+            	}
+        	}
+
+        SDL_UpdateWindowSurface(window);
+    }
+		
+		
 	}
 	else
 	{
