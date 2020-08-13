@@ -1,4 +1,4 @@
-# ScreenDUO4macOS (fork of mayorbobster's screenduo4linux driver)
+# ScreenDUO4macOS
 Very, very, WIP thing, most likely to be unstable or to not even work at all...
 
 ```
@@ -6,9 +6,11 @@ ASUS ScreenDUO - screenduo4macOS
 Opensource runtime app based driver for ASUS ScreenDUO
 
 Options:
-        duo <anytext>     Text mode
-        duo --ui          UI mode
-        duo --screen      Screen mode, provide screen.bmp file in exec folder
+        <anytext>     Text mode
+        --ui          UI mode
+        --screen      Screen mode, provide screen.bmp file in exec folder
+        --emu         SDL emulator/simulator thing used when you don't have a real ScreenDUO
+        
 
 Formatting guide for text mode:
 \n - Newline
@@ -23,7 +25,9 @@ Examples:
 
 ```
 # Credits:
-- **[Geoffrey McRae](https://github.com/gnif)** for creating original code
+
+- **[Dmitry Zaitsev](https://github.com/hhrhhr)** for creating original code
+- **[mayorbobster](https://github.com/mayorbobster/screenduo4linux)** for improving the original code (originally forked from this)
 - **[Andrei Sokolov](https://youtu.be/I2bF9IQN76U)** for adding putpixel, ~~putbigpixel~~ putpixelxl
 - **Bob Gill** for adding multiline color text support
-- **[Ash Hughes](https://github.com/ashh87)** for making the relatively good and working button code
+- **[Ash Hughes](https://github.com/ashh87)** for making the relatively good and working button code that I modified and added
