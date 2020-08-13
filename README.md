@@ -27,7 +27,8 @@ Examples:
 # Credits:
 
 - **[Dmitry Zaitsev](https://github.com/hhrhhr)** for creating original code
-- **[mayorbobster](https://github.com/mayorbobster/screenduo4linux)** for improving the original code (originally forked from this)
+- **[Geoffrey McRae](https://github.com/gnif)** also possibly for creating the original code (not sure)
 - **[Andrei Sokolov](https://youtu.be/I2bF9IQN76U)** for adding putpixel, ~~putbigpixel~~ putpixelxl
 - **Bob Gill** for adding multiline color text support
+- **[mayorbobster](https://github.com/mayorbobster/screenduo4linux)** for improving the original code (originally forked from this)
 - **[Ash Hughes](https://github.com/ashh87)** for making the relatively good and working button code that I modified and added
