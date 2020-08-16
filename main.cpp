@@ -580,7 +580,7 @@ int main(int argc, char **argv) {
 		
 		while (1) {
 			if(!SDLemu) //don't try to get_buttons from libusb during emulation
-			if(screensaver_animation == 8 | screensaver_animation == 0) //disable get_buttons when performing animation
+			if(screensaver_animation == 10 | screensaver_animation == 0) //disable get_buttons when performing animation
 			get_buttons(device);
 		
 		   	//
@@ -662,7 +662,7 @@ int main(int argc, char **argv) {
 		   	//dúfam že to toto aj pôjde
 		   	if(screensaver_enabled)
 		   	{
-		   		if(screensaver_animation != 8){
+		   		if(screensaver_animation != 10){
 		   			for(r = 0; r < header->w * header->h * 3; r++){ //forloop to shift colors and to not make them go negative(making trippy things)
 		   				if(data[r] >= 25)
 		   					data[r] = data[r]-24;
@@ -731,6 +731,8 @@ int main(int argc, char **argv) {
 					if (counter == 1){
 						puticon(data,18,72,"Resources/ss_n.bmp");
 					}
+
+					usleep(250000);
 				}
 				
 		   	}else{
@@ -856,8 +858,6 @@ int main(int argc, char **argv) {
         	//
         	//SDL Emulator - framebuffer side
         	//
-        	
-			usleep(250000);
     	}
 		
 	}
