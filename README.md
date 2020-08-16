@@ -23,6 +23,16 @@ Examples:
 ./duo "\affffff\p20,130," - Puts a white pixel at X:20, Y:130
 ./duo "Fred\n\c3Barney" - Prints Fred in white color and Barney in blue color on new line
 ```
+### SDL emulator keymap
+
+| Button                         | Action         |
+|--------------------------------|----------------|
+| Arrow keys(up,left,right, down)| D-pad          |
+| Backspace                      | Back button    |
+| Enter(Return) key              | Enter button   |
+| comma ,                        | App 1 button   |
+| period .                       | App 2 button   |
+
 ### Dependencies and other stuff
 To get this driver to compile you need to install:
 - libusb and sdl2
