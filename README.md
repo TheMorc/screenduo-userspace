@@ -23,17 +23,24 @@ Examples:
 ./duo "\affffff\p20,130," - Puts a white pixel at X:20, Y:130
 ./duo "Fred\n\c3Barney" - Prints Fred in white color and Barney in blue color on new line
 ```
-### SDL emulator keymap
+## SDL emulator
+This userspace driver includes a SDL2 emulator which is used only for one purpose with three objectives to do:
+* create a simple window on host system
+* copy raw pixel data(the same one sent to SDL) into streaming texture and render it
+* grab keyboard events and use them to press virtual ScreenDUO keys
 
-| Button                         | Action         |
+### SDL keymap
+
+| Keyboard keys                  | SDL emu action |
 |--------------------------------|----------------|
-| Arrow keys(up,left,right, down)| D-pad          |
+| Arrow keys(up,left,right,down) | D-pad buttons  |
 | Backspace                      | Back button    |
 | Enter(Return) key              | Enter button   |
 | comma ,                        | App 1 button   |
 | period .                       | App 2 button   |
+| Escape key                     | Quit emulator  |
 
-### Dependencies and other stuff
+## Dependencies and other stuff
 To get this driver to compile you need to install:
 - libusb and sdl2
 
@@ -47,11 +54,12 @@ I got this driver to compile using g++ on:
   * using libusb and sdl2-devel from original sites and by adding flags and modifying paths to get it to compile on TDM GCC(MinGW)
 * **Raspbian** - to try it to compile on Linux and ARM 
   * by using libusb-1.0-dev and modifying paths
+  * tested using X11 SSH forwarding
+  
 *(i will add these flags with identifiying to makefile as soon I will need to)*
 
 
 ## Some incomplete credits:
-
 - **[Dmitry Zaitsev](https://github.com/hhrhhr)** for creating original code
 - **[Geoffrey McRae](https://github.com/gnif)** also possibly for creating the original code (not sure which one of them)
 - **[Andrei Sokolov](https://youtu.be/I2bF9IQN76U)** for adding putpixel, ~~putbigpixel~~ putpixelxl
