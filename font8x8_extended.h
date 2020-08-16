@@ -18,9 +18,9 @@
  * Fetched from: http://dimensionalrift.homelinux.net/combuster/mos3/?p=viewsource&file=/modules/gfx/font8_8.asm
  **/
 
-// Constant: font8x8_basic
+// Constant: font8x8_extended
 // Contains an 8x8 font map for unicode points U+0000 - U+007F (basic latin)
-char font8x8_basic[256][8] = {
+char font8x8_extended[256][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0000 (nul)
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0001 (SOH)
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0002 (STX)

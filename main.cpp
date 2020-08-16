@@ -27,9 +27,10 @@
 
 
 #define MAXCHAR 1000
-#define INFO "ASUS ScreenDUO - screenduo4macOS\nOpensource runtime app based driver for ASUS ScreenDUO\n"
-int screensaver_enabled = 0;
-int animation_ = 0;
+#define INFO "ASUS ScreenDUO - opensource userspace driver written in C++ for Windows/macOS/Linux\n"
+bool screensaver_enabled = false;
+int screensaver_animation, screensaver_dvojbodka = 0;
+bool SDLemu = true;
 
 typedef struct {
     uint32_t	dCBWSignature;
@@ -85,7 +86,7 @@ int hw_init(libusb_device_handle *device) {
 
     if (libusb_kernel_driver_active(device, HID_IF) == 1 && libusb_detach_kernel_driver(device, HID_IF) != 0) {
         printf(INFO);
-        printf("\nError: Failed to activate and detatch\n");
+        printf("\nError: Failed to activate and detach\n");
         return 0;
     }
 
@@ -227,45 +228,42 @@ int dev_write(libusb_device_handle *device, uint8_t *data, unsigned int length) 
     return pos;
 }
 
-void print_button(char btn_code){
-    printf("Button: ");
+
+void buttonPress(char btn_code) {
     switch(btn_code) {
     case 0:
-        printf("Enter\n");
+        printf("Enter Button pressed\n");
         
         break;
     case 1:
-        printf("Left\n");
+        printf("Left Button pressed\n");
         break;
     case 2:
-        printf("Right\n");
+        printf("Right Button pressed\n");
         break;
     case 3:
-        printf("Up\n");
+        printf("Up Button pressed\n");
         break;
     case 4:
-        printf("Down\n");
+        printf("Down Button pressed\n");
         break;
     case 6:
-        printf("Back\n");
+        printf("Back Button pressed\n");
         break;
     case 12:
-        printf("App 1\n");
-        if(screensaver_enabled == 1) {
-        screensaver_enabled = 0;
-        animation_ = 0;
+        printf("App 1 Button pressed\n");
+        if(screensaver_enabled) {
+        	screensaver_enabled = false;
+        	screensaver_animation = 0; //reset dim animation
+        }else{
+        	screensaver_enabled = true;
         }
-        else
-        {
-        screensaver_enabled = 1;
-        }
-        printf("screensaver_enabled %d\n", screensaver_enabled);
         break;
     case 13:
-        printf("App 2\n");
+        printf("App 2 Button pressed\n");
         break;
     default:
-        printf("Unknown: %d\n", btn_code);
+        printf("Unknown button: %d\n", btn_code);
         break;
 	}
 }
@@ -303,10 +301,13 @@ void putpixelxl(uint8_t *data, int x, int y, char r, char g, char b) {
 	}
 }
 
+
+//
+// puticon function that places a bmp image in a specified x,y position(seems to be broken on Windows but working just fine on Linux/macOS)
 void puticon(uint8_t *data, int x, int y, const char *filename) {
    		char fileSpec[strlen(filename)+1];
     	snprintf(fileSpec, sizeof(fileSpec), "%s", filename);
-		FILE* f = fopen(fileSpec, "r"); //otvoriť súbor
+		FILE* f = fopen(fileSpec, "rb"); //otvoriť súbor
 		
     	unsigned char info[54];
     	fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
@@ -325,8 +326,7 @@ void puticon(uint8_t *data, int x, int y, const char *filename) {
         	
     	char* BMPdata = new char[size]; // allocate 3 bytes per pixel
     	fread(BMPdata, sizeof(char), size, f); // read the rest of the data at once
-    	fclose(f);
-    		
+    	
 		for (int riadok = 0; riadok < width; riadok++)
     		{
     			for (int stlpec = 0; stlpec < height; stlpec++)
@@ -337,6 +337,7 @@ void puticon(uint8_t *data, int x, int y, const char *filename) {
 					data[((riadok+x)+(y+reverse)*320)*3+2] = BMPdata[(riadok+stlpec*(width+1))*3];
     		}
 		}
+		fclose(f);
     	free(BMPdata);
 }
 
@@ -408,7 +409,8 @@ int get_buttons(libusb_device_handle *device) {
             if (tmp[4] == r_len) {
                 int n_buttons = tmp[4] - 8;
                 for (int cur_button = 0; cur_button < n_buttons; ++cur_button) {
-                    print_button(tmp[8 + cur_button]);
+                    printf("libusb button: ");
+                    buttonPress(tmp[8 + cur_button]);
                 }
             }
         }
@@ -431,19 +433,22 @@ int get_buttons(libusb_device_handle *device) {
     return pos;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char **argv) {
+	
+    if (argc < 2) {
+        printf(INFO);
+    	printf("\nError: Too few arguments given.\n\nOptions:\n        <anytext>     Text mode (no args needed, use quotes)\n        --ui          UI mode\n        --screen      Screen mode, provide screen.bmp file in exec folder\n        --SDL         SDL emulator mode\n        --oldSDL      Screen capture test mode using SDL using window buffer");
+    	printf("\n\nFormatting guide for text mode:\n\\n - Newline\n\\c<0-E> - Text Color\n\\a<FFFFFF> - Text Color in HEX format in both lower and uppercase format (ex: \aFEA4dC)\n\\p<X>,<Y>, - Puts pixel in current color at X pos <0-320> and Y pos <0-240> Last comma is required.\n\\b<X1>,<X2>,<Y1>,<Y2>, - Draws a box from X1, Y1 to X2, Y2 pos. Last comma is required.\n");
+    	printf("\nExamples:\n./duo \"\\affffff\\p20,130,\" - Puts a white pixel at X:20, Y:130\n./duo \"Fred\\n\\c3Barney\" - Prints Fred in white color and Barney in blue color on new line\n");
+        return -1;
+    } 
+	
     int			r;
     libusb_context		*ctx;
     libusb_device_handle	*device;
 
-    if (argc < 2) {
-        printf(INFO);
-    	printf("\nError: Too few arguments given.\n\nOptions:\n        duo <anytext>     Text mode\n        duo --ui          UI mode\n        duo --screen      Screen mode, provide screen.bmp file in exec folder");
-    	printf("\n\nFormatting guide for text mode:\n\\n - Newline\n\\c<0-E> - Text Color\n\\a<FFFFFF> - Text Color in HEX format supported in lower and also uppercase (example: \aFEA4dC)\n\\p<X>,<Y>, - Puts pixel in current color at X position <0-320> and Y position <0-240> Last comma is required.\n\\b<X1>,<X2>,<Y1>,<Y2>, - Draws a box from X1, Y1 to X2, Y2 position. Last comma is required.\n");
-    	printf("\nExamples:\n./duo \"\\affffff\\p20,130,\" - Puts a white pixel at X:20, Y:130\n./duo \"Fred\\n\\c3Barney\" - Prints Fred in white color and Barney in blue color on new line\n");
-        return -1;
-    } 
 
+	if(!SDLemu){
     if ((r = libusb_init(&ctx)) < 0)
         return r;
 
@@ -459,8 +464,9 @@ int main(int argc, char *argv[]) {
         libusb_exit(ctx);
         return -1;
     }
+    }
 
-    uint8_t	image[sizeof(image_t) + (320 * 240 * 3)];
+    uint8_t	image[sizeof(image_t) + (230400)];
     memset(image, 0, sizeof(image));
 
     image_t *header = (image_t*)image;
@@ -474,7 +480,7 @@ int main(int argc, char *argv[]) {
     header->y	= 0;
     header->w	= 320;
     header->h	= 240;
-    header->length	= sizeof(image_t) + (320 * 240 * 3);
+    header->length	= sizeof(image_t) + (230400);
     header->u5	= 0x01; /* no idea */
 
     memset(data, 0x00, sizeof(image) - sizeof(image_t));
@@ -511,38 +517,47 @@ int main(int argc, char *argv[]) {
     int cx = 0;   
     int linespace = 8;  /* line spacing.  8 is small, 10 looks ok */
     
-    if(strcmp(argv[1],"--ui")==0)
-	{
-		printf(INFO);
-		printf("Welcome to the experimental UI mode\nVitaj v experimentálnom móde s UI\n");
-		
-		
-		
-		//
-        //SDL Emulator
-        //
-		SDL_Init(SDL_INIT_VIDEO);
-		SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
-	
-    	SDL_Window * window = SDL_CreateWindow("ASUS ScreenDUO",
+    //
+    //SDL Emulator - window init
+    //
+    SDL_Window *window = NULL; //defining SDL classes "externally" just to not break things when not emulating (code and ctrl+c because of SDL init)
+    SDL_Renderer *renderer = NULL;
+    SDL_Texture *sdlTexture = NULL;
+   	Uint32 * pixels = new Uint32[76800];
+    
+    if(SDLemu){
+    SDL_Init(SDL_INIT_VIDEO);
+    window = SDL_CreateWindow("ASUS ScreenDUO - SDL emulator",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         320, 240,
         SDL_WINDOW_RESIZABLE);
 
-    	SDL_Surface * window_surface = SDL_GetWindowSurface(window);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
 
-    	unsigned int * pixels = (unsigned int*)window_surface->pixels;
-    	int width = window_surface->w;
-    	int height = window_surface->h;
-		//
-        //SDL Emulator
-        //
+    SDL_SetWindowMinimumSize(window, 320, 240);
+
+    SDL_RenderSetLogicalSize(renderer, 320, 240);
+
+    sdlTexture = SDL_CreateTexture(renderer,
+        SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING,
+        320, 240);
+        
+   	}
+	//
+    //SDL Emulator - window init
+    //
+    
+	printf(INFO);
 		
-		
-		
+	if(SDLemu)
+		printf("Running in SDL emulated mode!\n\n");
+			
+    if(strcmp(argv[1],"--ui")==0)
+	{
+		printf("Welcome to the experimental UI mode\n");
 		
 		//vykresli prázdny obrázek
-		FILE* f = fopen("ui_background.bmp", "rb");
+		FILE* f = fopen("Resources/ui_background.bmp", "rb");
     	fseek(f, 54, SEEK_SET);
     	int size = 230400;
 		char *bitmap = font8x8_extended[0];
@@ -559,71 +574,117 @@ int main(int argc, char *argv[]) {
     				data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];	
     		}
 		}
+		
+		if(!SDLemu)
     	dev_write(device, image, sizeof(image));
 		
-		animation_ = 0;
-		screensaver_enabled = 1;
 		while (1) {
-			//zisťovanie tlačítek, vec potrebná do budúcnosti, očakávam prvotné využitie tak nejako začiatkom novembra kým dorobím všetko ostatné
+			if(!SDLemu) //don't try to get_buttons from libusb during emulation
+			if(screensaver_animation == 8 | screensaver_animation == 0) //disable get_buttons when performing animation
 			get_buttons(device);
-		   	
-		   	
+		
 		   	//
-        	//SDL Emulator
+        	//SDL Emulator - quit and button handling
         	//
-		   	SDL_Event event;
+        	if(SDLemu){
+        	SDL_Event event;
         	while (SDL_PollEvent(&event))
         	{
             	if (event.type == SDL_QUIT) exit(0);
-            	if (event.type == SDL_WINDOWEVENT)
-            	{
-                	if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-                	{
-                    /*window_surface = SDL_GetWindowSurface(window);
-                    pixels = (unsigned int*)window_surface->pixels;
-                    width = window_surface->w;
-                    height = window_surface->h;*/
-                    	printf("Size changed: %d, %d\n", width, height);
-                	}
+            	if( event.type == SDL_KEYDOWN )
+                {
+                    switch( event.key.keysym.sym )
+                    {
+                    	//ESC quit
+                        case SDLK_ESCAPE:
+                        exit(0);
+                        break;
+                    
+                    
+                    	//arrow keys
+                        case SDLK_LEFT:
+                        printf("SDL emulator button: ");
+                        buttonPress(1);
+                        break;
+                        
+                        case SDLK_RIGHT:
+                        printf("SDL emulator button: ");
+                        buttonPress(2);
+                        break;
+                        
+                        case SDLK_UP:
+                        printf("SDL emulator button: ");
+                        buttonPress(3);
+                        break;
+
+                        case SDLK_DOWN:
+                        printf("SDL emulator button: ");
+                        buttonPress(4);
+                        break;
+                        
+                        
+                        //enter and back
+                        case SDLK_RETURN:
+                        printf("SDL emulator button: ");
+                        buttonPress(0);
+                        break;
+                        
+                        case SDLK_BACKSPACE:
+                        printf("SDL emulator button: ");
+                        buttonPress(6);
+                        break;
+                        
+                        
+                        //app1 and app2
+                        case SDLK_PERIOD:
+                        printf("SDL emulator button: ");
+                        buttonPress(13);
+                        break;
+                        
+                        case SDLK_COMMA:
+                        printf("SDL emulator button: ");
+                        buttonPress(12);
+                        break;
+                    }
             	}
         	}
-        	SDL_UpdateWindowSurface(window);
+        	}
 			//
-        	//SDL Emulator
+        	//SDL Emulator - quit and button handling
         	//
+		   	
+		   	//zisťovanie času, ďalšia to vec potrebná
+    		time_t rawtime = time(NULL);
+    		struct tm *ptm = localtime(&rawtime);
+			
 		   	
 		   	//gýčové zisťovanie stavu zapnutého šetriča, uvidíme čo z tohoto vznikne
 		   	//dúfam že to toto aj pôjde
-
-		   	if(screensaver_enabled == 1)
+		   	if(screensaver_enabled)
 		   	{
-		   		if(animation_ != 10){
-		   			for(r = 0; r < header->w * header->h * 3; r++){
-		   				if(data[r] >= 30)
+		   		if(screensaver_animation != 8){
+		   			for(r = 0; r < header->w * header->h * 3; r++){ //forloop to shift colors and to not make them go negative(making trippy things)
+		   				if(data[r] >= 25)
 		   					data[r] = data[r]-24;
-		   				if (data[r] <= 30)
+		   				if (data[r] <= 25)
 		   					data[r] = 0;
 		   			}
-		   			animation_++;
+		   			screensaver_animation++;
 		   		}else{
-		   			
 		   			//vyčistenie predchádzajúceho framu
 		   			for(r = 0; r < header->w * header->h * 3; r++){
 		   					data[r] = 0;
 		   			}
-		   			int dvojbodka;
+		   			
 		   			//vykreslenie dvojbodky
-		   			if (dvojbodka == 2)
+		   			if (screensaver_dvojbodka == 2)
     				{
-		   			puticon(data,129,72,"ss_c.bmp");
-		   			dvojbodka = 0;
+		   				puticon(data,129,72,"Resources/ss_c.bmp");
+		   				screensaver_dvojbodka = 0;
 		   			}
-		   			dvojbodka++;
-		   			//zisťovanie času, ďalšia to vec potrebná
-    				time_t rawtime = time(NULL);
-    				struct tm *ptm = localtime(&rawtime);
-			
-					//kreslenie času
+		   			screensaver_dvojbodka++;
+		   			
+					//kreslenie času, vymyslené divným spôsobom ktorému záleží na poradí, ale našťastie ide
 					//minúty
 					int counter = 0;
 					int digit = 0;
@@ -631,49 +692,47 @@ int main(int argc, char *argv[]) {
 						digit = ptm->tm_min % 10;
 						counter++;
 						if (counter == 1){
-							char fname[9];
-    						snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+							char fname[19]; //filename length in characters(Resources/ss_%d.bmp = 19)
+    						snprintf(fname, sizeof(fname), "Resources/ss_%d.bmp", digit);
 		   					puticon(data,239,72,fname);
 						}
 						ptm->tm_min /= 10;
 					}
-					//toť je nula
+					//toť je minútová nula na druhú pozíciu
 					if (counter == 0){
-						puticon(data,239,72,"ss_0.bmp");
+						puticon(data,239,72,"Resources/ss_0.bmp");
 					}
 					//prvé číslo minúty
 					if (counter == 2){
-						char fname[9];
-    					snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+						char fname[19];
+    					snprintf(fname, sizeof(fname), "Resources/ss_%d.bmp", digit);
 		   				puticon(data,173,72,fname);
 					}
 					else //prvé číslo minúty, nula
 					{
-						puticon(data,173,72,"ss_0.bmp");
+						puticon(data,173,72,"Resources/ss_0.bmp");
 					}
 				
 					//hodiny,samé o sebe
 					counter = 0;
 					while (ptm->tm_hour > 0) {
 						int digit = ptm->tm_hour % 10;
-						char fname[9];
-    					snprintf(fname, sizeof(fname), "ss_%d.bmp", digit);
+						char fname[19];
+    					snprintf(fname, sizeof(fname), "Resources/ss_%d.bmp", digit);
 		   				puticon(data,84-counter*66,72,fname);
 						counter++;
 						ptm->tm_hour /= 10;
 					}
-					//nula v prípade že je 0:0–59
+					//hodinová nula v prípade že je 0:0–59
 					if (counter == 0){
-						puticon(data,84,72,"ss_0.bmp");
-						puticon(data,18,72,"ss_n.bmp");
+						puticon(data,84,72,"Resources/ss_0.bmp");
+						puticon(data,18,72,"Resources/ss_n.bmp");
 					}
 					if (counter == 1){
-						puticon(data,18,72,"ss_n.bmp");
+						puticon(data,18,72,"Resources/ss_n.bmp");
 					}
 				}
 				
-		   		//data[r] = data[r]-5; toto robí dosť trippy póžitek..
-            	
 		   	}else{
 		   	
 				//životu prospešné UI pozadie
@@ -696,12 +755,6 @@ int main(int argc, char *argv[]) {
     	   		     	putpixelxl(data,x+137,y+2,set ? red : 0,set ? green : 0,set ? blue : 0);
     	   		 	}
 				}
-			
-				//zisťovanie času, ďalšia to vec potrebná
-    			time_t rawtime = time(NULL);
-    			struct tm *ptm = localtime(&rawtime);
-		   
-		   	
 			
 				//kreslenie času
 				//minúty
@@ -778,40 +831,68 @@ int main(int argc, char *argv[]) {
 				}
 			
 			}
-			
+			if(!SDLemu)
 			dev_write(device, image, sizeof(image));
 			
-			
 			//
-        	//SDL Emulator
+        	//SDL Emulator - framebuffer side
         	//
-        	for (int y = 0; y < height; ++y)
+        	if(SDLemu){
+        	for (int y = 0; y < 240; ++y)
         	{
-            	for (int x = 0; x < width; ++x)
+            	for (int x = 0; x < 320; ++x)
             	{
-                	pixels[x + y * width] = SDL_MapRGB(window_surface->format, data[(x+y*320)*3], data[(x+y*320)*3+1], data[(x+y*320)*3+2]);
+                	pixels[x + y * 320] = ((data[(x+y*320)*3]<<16) | (data[(x+y*320)*3+1]<<8) | data[(x+y*320)*3+2]);
             	}
         	}
-        	SDL_UpdateWindowSurface(window);
-        	//
-        	//SDL Emulator
-        	//
         	
+        	//update and write
+        	SDL_UpdateTexture(sdlTexture, NULL, pixels, 320 * 4);
+			SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+			SDL_RenderPresent(renderer);
+			
+			SDL_Delay(250); //libusb overhead time delay to relatively match speed
+			}
+        	//
+        	//SDL Emulator - framebuffer side
+        	//
         	
 			usleep(250000);
-			
     	}
 		
 	}
 	else if(strcmp(argv[1],"--screen")==0)
 	{
-		printf(INFO);
 		printf("Screen Capture mode\n");
 		
     	int size = 230400;
     	char *BMPdata = new char[230400]; // allocate 3 bytes per pixel
     	int i;
 		while (1) {
+			//
+        	//SDL Emulator - quit handling (screencapture is not supposed to use buttons for now)
+        	//
+        	if(SDLemu){
+        	SDL_Event event;
+        	while (SDL_PollEvent(&event))
+        	{
+            	if (event.type == SDL_QUIT) exit(0);
+            	if( event.type == SDL_KEYDOWN )
+                {
+                    switch( event.key.keysym.sym )
+                    {
+                    	//ESC quit
+                        case SDLK_ESCAPE:
+                        exit(0);
+                        break;
+                    }
+            	}
+        	}
+        	}
+			//
+        	//SDL Emulator - quit and button handling (screencapture is not supposed to use buttons for now)
+        	//
+		
         	FILE* f = fopen("screen.bmp", "r");
     		fseek(f, 54, SEEK_SET);
     		fread(BMPdata, sizeof(char), 230400, f); // read the rest of the data at once
@@ -836,11 +917,35 @@ int main(int argc, char *argv[]) {
     					data[(riadok+reverse*320)*3+2] = BMPdata[(riadok+stlpec*320)*3];
     				}
 			}
-    	dev_write(device, image, sizeof(image));
+			
+			if(!SDLemu)
+    		dev_write(device, image, sizeof(image));
+    	
+    		//
+        	//SDL Emulator - framebuffer side
+        	//
+        	if(SDLemu){
+        		for (int y = 0; y < 240; ++y)
+        		{
+        		   	for (int x = 0; x < 320; ++x)
+        		   	{
+        		       	pixels[x + y * 320] = ((data[(x+y*320)*3]<<16) | (data[(x+y*320)*3+1]<<8) | data[(x+y*320)*3+2]);
+        		   	}
+        		}
+        
+        		//update and write
+        		SDL_UpdateTexture(sdlTexture, NULL, pixels, 320 * 4);
+				SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+				SDL_RenderPresent(renderer);
+			
+				SDL_Delay(250); //libusb overhead time delay to relatively match speed
+			}
+        	//
+        	//SDL Emulator - framebuffer side
+        	//
     	}
-	}else if(strcmp(argv[1],"--emu")==0)
+	}else if(strcmp(argv[1],"--oldSDL")==0)
 	{
-	char *FBdata = new char[230400]; // allocate 3 bytes per pixel
 	char *BMPdata = new char[230400]; // allocate 3 bytes per pixel
 	FILE* f = fopen("screen.bmp", "r");
     		fseek(f, 54, SEEK_SET);
@@ -867,10 +972,11 @@ int main(int argc, char *argv[]) {
     				}
 			}
 	
-		printf(INFO);
-		printf("Emulated ScreenDUO mode\n");
+		printf("screen capture test using window buffer SDL mode\n");
 		
-		
+		//
+        //SDL Emulator
+        //
 		SDL_Init(SDL_INIT_VIDEO);
 		SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
 	
@@ -893,20 +999,8 @@ int main(int argc, char *argv[]) {
         	while (SDL_PollEvent(&event))
         	{
             	if (event.type == SDL_QUIT) exit(0);
-            	if (event.type == SDL_WINDOWEVENT)
-            	{
-                	if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-                	{
-                    /*window_surface = SDL_GetWindowSurface(window);
-                    pixels = (unsigned int*)window_surface->pixels;
-                    width = window_surface->w;
-                    height = window_surface->h;*/
-                    	printf("Size changed: %d, %d\n", width, height);
-                	}
-            	}
         	}
 
-        	// Set every pixel to white.
         	for (int y = 0; y < height; ++y)
         	{
             	for (int x = 0; x < width; ++x)
@@ -916,8 +1010,10 @@ int main(int argc, char *argv[]) {
         	}
 
         SDL_UpdateWindowSurface(window);
-    }
-		
+   		}
+		//
+        //SDL Emulator
+        //
 		
 	}
 	else
@@ -1050,12 +1146,45 @@ int main(int argc, char *argv[]) {
 		if (nc) {nc=0;c--;cx--;}
 		if (nl) {nl=0;cx=0;c--;} 
     }//switch end
-    
-    }
-    dev_write(device, image, sizeof(image));
+    	if(!SDLemu)
+    	dev_write(device, image, sizeof(image));
+    	
+    	//
+        //SDL Emulator - show only one frame for 5 seconds and exit, it's not useful for text mode to stay opened
+        //
+        if(SDLemu){
+    	SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+           	if (event.type == SDL_QUIT) exit(0);
+        }
 
+		//copy of framebuffer side
+        for (int y = 0; y < 240; ++y)
+        {
+           	for (int x = 0; x < 320; ++x)
+           	{
+               	pixels[x + y * 320] = ((data[(x+y*320)*3]<<16) | (data[(x+y*320)*3+1]<<8) | data[(x+y*320)*3+2]);
+           	}
+        }
+        
+        //update and write
+        SDL_UpdateTexture(sdlTexture, NULL, pixels, 320 * 4);
+		SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+		SDL_RenderPresent(renderer);
+		//copy of framebuffer side
+		
+        SDL_Delay(5000);
+        }
+        //
+        //SDL Emulator - show only one frame for 5 seconds and exit, it's not useful for text mode to stay opened
+        //
+    }
+
+	if(!SDLemu){
     libusb_attach_kernel_driver(device, HID_IF);
     libusb_close(device);
     libusb_exit(ctx);
+    }
     return 0;
 }
