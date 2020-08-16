@@ -1,9 +1,9 @@
 # screenduo-userspace
-This is a userspace driver based on libusb that is used as a replacement for the original Windows XP/Vista ASUS ScreenDUO driver. It features a text mode, pseudoscreen capture mode, UI mode and a "emulator" to develop stuff for this driver without having access to real ScreenDUO. 
+This is a userspace driver based on libusb that is used as a replacement for the original Windows XP/Vista ASUS ScreenDUO driver. It features a text mode, pseudoscreen capture mode, UI mode and a "emulator" to develop stuff for this driver without having access to a real ScreenDUO. 
 
-### Usage output
+### Binary usage output
 ```
-ASUS ScreenDUO opensource userspace based driver written in C++ for Windows/macOS/Linux
+ASUS ScreenDUO - opensource userspace driver written in C++ for Windows/macOS/Linux
 
 Options:
         <anytext>     Text mode (no args needed, use quotes)
@@ -23,13 +23,24 @@ Examples:
 ./duo "\affffff\p20,130," - Puts a white pixel at X:20, Y:130
 ./duo "Fred\n\c3Barney" - Prints Fred in white color and Barney in blue color on new line
 ```
+### Feature wish list *(depends on my speed and knowledge)*
+- [x] SDL pseudoemulator that's capable of processing keyboard events and showing the same pixel data sent through libusb without even needing to have real ASUS ScreenDUO at home 
+- [x] Get it to compile on Linux with the same codebase
+- [x] Get it to compile on Windows with the same codebase and on my lowest target - Windows XP
+- [x] Get it to compile on Mac OS X/macOS with the same codebase on my lowest target - Mac OS 10.7
+- [ ] Fix args system
+- [ ] Add configs (ex. for enabling SDL mode and other stuff)
+- [ ] Add more UI functions
+- [ ] Make some Lua extension api
+
+
 ## SDL emulator
 This userspace driver includes a SDL2 emulator which is used only for one purpose with three objectives to do:
 * create a simple window on host system
-* copy raw pixel data(the same one sent to SDL) into streaming texture and render it
+* copy raw pixel data(the same one sent to libusb in case of a real ScreenDUO) into streaming texture and render it
 * grab keyboard events and use them to press virtual ScreenDUO keys
 
-### SDL keymap
+### SDL emulator keymap
 
 | Keyboard keys                  | SDL emu action |
 |--------------------------------|----------------|
