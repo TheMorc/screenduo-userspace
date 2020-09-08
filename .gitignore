@@ -1,7 +1,10 @@
-
 .DS_Store
 duo
 libSDL2-2.0.0.dylib
 libusb-1.0.0.dylib
 Backups/*
 screen.bmp
+liblua52.dylib
+liblua52.a
+include*
+bak.sh

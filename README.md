@@ -1,16 +1,17 @@
 # screenduo-userspace
 This is a userspace driver based on libusb that is used as a replacement for the original Windows XP/Vista ASUS ScreenDUO driver. It features a text mode, pseudoscreen capture mode, UI mode and a "emulator" to develop stuff for this driver without having access to a real ScreenDUO. 
+*Disclaimer: This is a WIP and a hobby project, all code here is not supposed to be 100% stable and used for dailydriving. (But I don't say that you shouldn't use it)*
 
-### Binary usage output
+### Usage output
 ```
 ASUS ScreenDUO - opensource userspace driver written in C++ for Windows/macOS/Linux
 
-Options:
+Usage:
         <anytext>     Text mode (no args needed, use quotes)
         --ui          UI mode
         --screen      Screen mode, provide screen.bmp file in exec folder
-        --SDL         SDL emulator mode
-        --oldSDL      Screen capture test mode using SDL using window buffer (deprecated, will be deleted in future)
+
+Settings for SDL and others can be changed in settings.lua located in the Scripts folder.
 
 Formatting guide for text mode:
 \n - Newline
@@ -24,12 +25,12 @@ Examples:
 ./duo "Fred\n\c3Barney" - Prints Fred in white color and Barney in blue color on new line
 ```
 ### Feature wish list *(depends on my speed and knowledge)*
-- [x] SDL pseudoemulator that's capable of processing keyboard events and showing the same pixel data sent through libusb without even needing to have real ASUS ScreenDUO at home 
+- [x] SDL pseudoemulator that's capable of processing keyboard events and showing the same pixel data sent through libusb without even needing to have a real ASUS ScreenDUO 
 - [x] Get it to compile on Linux with the same codebase
 - [x] Get it to compile on Windows with the same codebase and on my lowest target - Windows XP
 - [x] Get it to compile on Mac OS X/macOS with the same codebase on my lowest target - Mac OS 10.7
 - [ ] Fix args system
-- [ ] Add configs (ex. for enabling SDL mode and other stuff)
+- [x] Add configs (ex. for enabling SDL mode and other stuff)
 - [ ] Add more UI functions
 - [ ] Make some Lua extension api
 
@@ -66,8 +67,6 @@ I got this driver to compile using g++ on:
 * **Raspbian** - to try it to compile on Linux and ARM 
   * by using libusb-1.0-dev and modifying paths
   * tested using X11 SSH forwarding
-  
-*(i will add these flags with identifiying to makefile as soon I will need to)*
 
 
 ## Some incomplete credits:
@@ -75,4 +74,4 @@ I got this driver to compile using g++ on:
 - **[Geoffrey McRae](https://github.com/gnif)** also possibly for creating the original code (not sure which one of them)
 - **[Andrei Sokolov](https://youtu.be/I2bF9IQN76U)** for adding putpixel, ~~putbigpixel~~ putpixelxl
 - **[mayorbobster or Bob Gill](https://github.com/mayorbobster/screenduo4linux)** for improving the original code by adding multiline color text support(originally forked from this)
-- **[Ash Hughes](https://github.com/ashh87)** for making the relatively good and working button code that I modified and added
+- **[Ash Hughes](https://github.com/ashh87)** for making the relatively good and working button code that I modified and implemented
