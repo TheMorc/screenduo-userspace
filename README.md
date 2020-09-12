@@ -32,7 +32,7 @@ Examples:
 - [ ] Fix args system
 - [x] Add configs (ex. for enabling SDL mode and other stuff)
 - [ ] Add more UI functions
-- [ ] Make some Lua extension api
+- [x] Make some Lua extension api
 
 
 ## SDL emulator
