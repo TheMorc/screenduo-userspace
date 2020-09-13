@@ -8,3 +8,4 @@ liblua52.dylib
 liblua52.a
 include*
 bak.sh
+libpng16.16.dylib

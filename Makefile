@@ -3,6 +3,7 @@ OTHER1 =
 OTHER2 = 
 OTHER3 = 
 OTHER4 =
+OTHER5 =
 CC=g++
 SRC = main.cpp emulator.cpp libusb.cpp gl.cpp
 CFLAGS=-I/usr/local/Cellar/libusb/1.0.21/include/libusb-1.0 -lusb-1.0 -L/usr/local/lib -Iinclude -L. -llua52 -lSDL2
@@ -20,6 +21,7 @@ else
 		OTHER2 = install_name_tool -change /usr/local/opt/libusb/lib/libusb-1.0.0.dylib "@loader_path/libusb-1.0.0.dylib" ./duo #relink dylibs to same folder as binary
 		OTHER3 = install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib "@loader_path/libSDL2-2.0.0.dylib" ./duo
 		OTHER4 = install_name_tool -change liblua52.dylib "@loader_path/liblua52.dylib" ./duo
+		OTHER5 = install_name_tool -change /usr/local/opt/libpng/lib/libpng16.16.dylib "@loader_path/libpng16.16.dylib" ./duo
     endif
 endif
 
@@ -30,6 +32,7 @@ duo:
 	$(OTHER2)
 	$(OTHER3)
 	$(OTHER4)
+	$(OTHER5)
 
 # original C
 #	gcc main.c -o $@ -I/usr/local/Cellar/libusb/1.0.23/include/libusb-1.0 -lusb-1.0

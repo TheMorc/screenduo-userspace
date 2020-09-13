@@ -24,11 +24,6 @@ function app_open(appname)
 	if logINFO then
 		print("[screenduo] opening " .. appname .. " (" .. app:getName() .. ")")
 	end
-	app_update(appname)
-end
-
---this has to be strictly called from the UI function
-function app_update(filename)
 	app:update()
 end
 
@@ -83,20 +78,19 @@ function preUI()
 	--render(false)
 end
 
-apps_fetch("apps/") --load apps
-test = 0
+apps_fetch("apps/") --load apps from specific folder
+
 --this is the main UI function that is being looped in the C++ code!
 function UI()
 	if app_opened then --if is an app opened, go straight into the app UI function and do not proceed into the UI function
-		app_update(app_class)
+		app:update()
 		return
 	end
 	
-	putpng(0,0,"resources/ui_background.png")
+	putpng(0,0,"resources/ui_background.png") --used for clearing the screen
 	
-	putpng(30,20,"resources/window.png")
+	--putpng(30,20,"resources/window.png")
 	
-	--putbmpbg("Resources/ui_background.bmp") --used for clearing the screen
 	
 	local app_ = 0
 	for key in pairs(apps) do
@@ -104,16 +98,9 @@ function UI()
   		--putchar(20+(app_*8), 50, 48, 255, 255, 255)
   		putpng((app_*45)-18,195,apps[key].icon)
 	end
-		
-  	putpixel((app_index*45),236,255,255,255)
-  	putpixel((app_index*45),237,255,255,255)
-  	putpixel((app_index*45),238,255,255,255)
-  	putpixel((app_index*45)+1,236,255,255,255)
-  	putpixel((app_index*45)+1,237,255,255,255)
-  	putpixel((app_index*45)+1,238,255,255,255)
-  	putpixel((app_index*45)+2,236,255,255,255)
-  	putpixel((app_index*45)+2,237,255,255,255)
-  	putpixel((app_index*45)+2,238,255,255,255)
+	
+	--app selector
+  	putpng((app_index*45)-4,229,"resources/selector.png")
 	
 	if colon_blinking then
 		if colon == 2 then --blinking colon

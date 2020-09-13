@@ -1,13 +1,13 @@
 --Simple snake example game
---based on https://github.com/elua/snake/blob/master/snake.lua
+--heavily modified port of https://github.com/elua/snake/blob/master/snake.lua
 app = {};
 app_name = "Snake"
 app_desc = "Snake game"
-app_version = 1.0
+app_version = 1.1
 app_icon = "apps/snake.png"
 
-local xMax = math.floor( 128 / 6 ) - 1
-local yMax = math.floor( 96 / 8 ) - 1
+local xMax = math.floor( 320 / 6 ) - 1
+local yMax = math.floor( 240 / 8 ) - 1
 local game_map = {}
 
 local Head = {}
@@ -95,12 +95,25 @@ end
 
 local function draw_walls()
   for i = 0, xMax*2, 1 do
-    putpixel(i * 3, yMax * 8 - 6,  255,255,255 )
-    putpixel( i * 3, 0, 11 )
+    putpixel(i * 3, yMax * 8,  255,255,255 )
+    putpixel(i * 3+1, yMax * 8,  255,255,255 )
+    putpixel(i * 3+3, yMax * 8,  255,255,255 )
+    putpixel(i * 3+4, yMax * 8,  255,255,255 )
+    putpixel(i * 3+5, yMax * 8,  255,255,255 )
+    putpixel(i * 3, 0, 255,255,255 )
+    putpixel(i * 3+1, 0, 255,255,255 )
+    putpixel(i * 3+2, 0, 255,255,255 )
+    putpixel(i * 3+3, 0, 255,255,255 )
   end
   for i = 0, yMax*2, 1 do
     putpixel(xMax * 6, i * 4,  255,255,255 )
+    putpixel(xMax * 6, i * 4+1,  255,255,255 )
+    putpixel(xMax * 6, i * 4+2,  255,255,255 )
+    putpixel(xMax * 6, i * 4+3,  255,255,255 )
     putpixel(0, i * 4, 255,255,255 )
+    putpixel(0, i * 4+1, 255,255,255 )
+    putpixel(0, i * 4+2, 255,255,255 )
+    putpixel(0, i * 4+3, 255,255,255 )
   end
 end
 
@@ -108,8 +121,9 @@ end
 
   clearscreen()
   food = false
+  running = true
   draw_walls()
-  size = 3
+  size = 5
   score = 0
   level = 1
   Tail.x = 1
@@ -132,14 +146,23 @@ end
   create_food()
 
 function app:update()
-    direction = dir
-    move()
+	if running == true then
+    	direction = dir
+    	move()
+    end
 
 
 	if check_collision() then
-		return
+		running = false
+		if score > highscore then
+    		highscore = score
+  		end
+  		print("Game over :(")
+  		print("Your score was "..tostring(score))
+  		print("Highscore: "..tostring(highscore))
+  		--print( "SELECT to restart" )
+		app_close()
 	end
-	
 	
 	render(false)
 end
