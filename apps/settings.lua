@@ -4,6 +4,7 @@ settings = {};
 app_name = "Settings"
 app_desc = "A simple app to change settings."
 app_version = 1.0
+app_icon = "apps/sampleapp.png"
 
 x = 0
 y = 0
@@ -37,6 +38,10 @@ end
 
 function settings:getVersion()
 	return app_version
+end
+
+function settings:getIcon()
+	return app_icon
 end
 
 return settings

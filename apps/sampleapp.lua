@@ -5,6 +5,7 @@ sampleapp = {};
 app_name = "Sample app"
 app_desc = "A sample app."
 app_version = 1.0
+app_icon = "apps/sampleapp.png"
 
 
 function sampleapp:update()
@@ -23,6 +24,10 @@ end
 
 function sampleapp:getVersion()
 	return app_version
+end
+
+function sampleapp:getIcon()
+	return app_icon
 end
 
 return sampleapp

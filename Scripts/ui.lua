@@ -49,7 +49,7 @@ function apps_fetch(folder)
 	if logINFO then
 		print("[screenduo] loading apps from '" .. folder .. "'")
 	end
-	local f = io.popen("ls -td ".. folder .."*.lua | head") --macOS(Unix/Linux compatible) directory listing | needs to be fixed for Windows
+	local f = io.popen("ls ".. folder .."*.lua | head") --macOS(Unix/Linux compatible) directory listing | needs to be fixed for Windows
  	for filename in f:lines() do
     	local class = filename:sub(1,filename:len()-4)
     	if logINFO then
@@ -57,10 +57,11 @@ function apps_fetch(folder)
     	end
     	fetchedapp = require(class)
     	app_count = app_count + 1
- 		apps[app_count]={["class"]=class,["name"]=fetchedapp:getName(), ["desc"]=fetchedapp:getDesc(), ["version"]=fetchedapp:getVersion()}
+ 		apps[app_count]={["class"]=class,["name"]=fetchedapp:getName(), ["desc"]=fetchedapp:getDesc(), ["version"]=fetchedapp:getVersion(), ["icon"]=fetchedapp:getIcon()}
  		if logINFO then
 			print("[screenduo] (" .. fetchedapp:getName() .. " v" .. fetchedapp:getVersion() .. ") registered sucessfully")
 		end
+		app_class = ""
 		package.loaded[class] = nil
 		_G[class] = nil
  	end
@@ -78,12 +79,12 @@ app_index = 1 --current selected app
 
 --this is a preUI load stage that was also used in main.cpp before but left unused
 function preUI()
-	--putbg("Resources/ui_background.bmp")
+	--putpngbg("apps/sampleapp.png")
 	--render(false)
 end
 
 apps_fetch("apps/") --load apps
-
+test = 0
 --this is the main UI function that is being looped in the C++ code!
 function UI()
 	if app_opened then --if is an app opened, go straight into the app UI function and do not proceed into the UI function
@@ -91,16 +92,28 @@ function UI()
 		return
 	end
 	
-	putbg("Resources/ui_background.bmp") --used for clearing the screen
+	putpng(0,0,"resources/ui_background.png")
+	
+	putpng(30,20,"resources/window.png")
+	
+	--putbmpbg("Resources/ui_background.bmp") --used for clearing the screen
 	
 	local app_ = 0
-	for key, class, name, desc in pairs(apps) do
+	for key in pairs(apps) do
   		app_ = app_ + 1
-  		putchar(20+(app_*8), 50, 48, 255, 255, 255)
+  		--putchar(20+(app_*8), 50, 48, 255, 255, 255)
+  		putpng((app_*45)-18,195,apps[key].icon)
 	end
-	
-	
-  	putchar(20+(app_index*8), 30, 48, 255, 255, 255)
+		
+  	putpixel((app_index*45),236,255,255,255)
+  	putpixel((app_index*45),237,255,255,255)
+  	putpixel((app_index*45),238,255,255,255)
+  	putpixel((app_index*45)+1,236,255,255,255)
+  	putpixel((app_index*45)+1,237,255,255,255)
+  	putpixel((app_index*45)+1,238,255,255,255)
+  	putpixel((app_index*45)+2,236,255,255,255)
+  	putpixel((app_index*45)+2,237,255,255,255)
+  	putpixel((app_index*45)+2,238,255,255,255)
 	
 	if colon_blinking then
 		if colon == 2 then --blinking colon
@@ -148,7 +161,7 @@ function buttonPress(btn)
     if btn == 1 then if app_index ~= 1 then app_index = app_index - 1 else app_index = app_count end
     elseif btn == 2 then if app_index ~= app_count then app_index = app_index + 1 else app_index = 1 end
     elseif btn == 0 then app_open(apps[app_index].class)
-    elseif btn == 12 then app_open("apps.screensaver")
-    elseif btn == 13 then app_open("apps.settings")
+    elseif btn == 12 then app_open(app1) --open app from app1 located in settings.lua
+    elseif btn == 13 then app_open(app2) --open app from app2 located in settings.lua
     end
 end

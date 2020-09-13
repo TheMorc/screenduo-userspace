@@ -16,7 +16,7 @@ else
     endif
     ifeq ($(UNAME_S),Darwin)
     	OTHER1 = ./bak.sh #this is my local backup script, nothing special
-        CFLAGS=-I/usr/local/Cellar/libusb/1.0.21/include/libusb-1.0 -lusb-1.0 -L/usr/local/lib -Iinclude -L. -llua52 -lSDL2
+        CFLAGS=-I/usr/local/Cellar/libusb/1.0.21/include/libusb-1.0 -lusb-1.0 -L/usr/local/lib -Iinclude -L. -llua52 -lSDL2 -L/usr/local/Cellar/libpng/1.6.37/lib -lpng16
 		OTHER2 = install_name_tool -change /usr/local/opt/libusb/lib/libusb-1.0.0.dylib "@loader_path/libusb-1.0.0.dylib" ./duo #relink dylibs to same folder as binary
 		OTHER3 = install_name_tool -change /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib "@loader_path/libSDL2-2.0.0.dylib" ./duo
 		OTHER4 = install_name_tool -change liblua52.dylib "@loader_path/liblua52.dylib" ./duo

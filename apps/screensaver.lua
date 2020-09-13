@@ -4,6 +4,7 @@ screensaver = {};
 app_name = "Screensaver"
 app_desc = "a simple 7 segment screensaver type clock"
 app_version = 1.0
+app_icon = "apps/screensaver/ss_icon.png"
 
 screensaver_colon_blinking = true --set to false to disable colon blinking
 screensaver_a = 0
@@ -19,24 +20,24 @@ function screensaver:update()
 		
 		if screensaver_colon_blinking then
 			if screensaver_colon == 2 then --blinking colon
-	   			puticon(129,72,"apps/screensaver/ss_c.bmp", false, true) --colon
+	   			putbmp(129,72,"apps/screensaver/ss_c.bmp", false, true) --colon
 	   			screensaver_colon = 0
 	   		end
 		   		screensaver_colon = screensaver_colon + 1
 	   	else
-	   		puticon(129,72,"apps/screensaver/ss_c.bmp", false, true) --colon
+	   		putbmp(129,72,"apps/screensaver/ss_c.bmp", false, true) --colon
 	   	end
 	   	
 	   	
 		if math.floor((os.date("%H")/10)%10) == 0 then --if the first number is zero, draw the empty number instead
-			puticon(18,72,"apps/screensaver/ss_n.bmp", false, true) --first number
+			putbmp(18,72,"apps/screensaver/ss_n.bmp", false, true) --first number
 		else
-			puticon(18,72,"apps/screensaver/ss_" .. math.floor((os.date("%H")/10)%10) .. ".bmp", false, true) --first number
+			putbmp(18,72,"apps/screensaver/ss_" .. math.floor((os.date("%H")/10)%10) .. ".bmp", false, true) --first number
 		end
 		
-		puticon(84,72,"apps/screensaver/ss_" .. math.floor((os.date("%H"))%10) .. ".bmp", false, true) --second number
-		puticon(173,72,"apps/screensaver/ss_" .. math.floor((os.date("%M")/10)%10) .. ".bmp", false, true) --third number
-		puticon(239,72,"apps/screensaver/ss_" .. math.floor((os.date("%M"))%10) .. ".bmp", false, true) --fourth number
+		putbmp(84,72,"apps/screensaver/ss_" .. math.floor((os.date("%H"))%10) .. ".bmp", false, true) --second number
+		putbmp(173,72,"apps/screensaver/ss_" .. math.floor((os.date("%M")/10)%10) .. ".bmp", false, true) --third number
+		putbmp(239,72,"apps/screensaver/ss_" .. math.floor((os.date("%M"))%10) .. ".bmp", false, true) --fourth number
 		
 		render(false) --there is a delay between animation and rendering this due to the usleep, so we render first and then sleep
 		usleep(250000) --sleep interval for the blinking colon
@@ -59,6 +60,10 @@ end
 
 function screensaver:getVersion()
 	return app_version
+end
+
+function screensaver:getIcon()
+	return app_icon
 end
 
 return screensaver

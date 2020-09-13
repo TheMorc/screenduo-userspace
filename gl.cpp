@@ -7,12 +7,13 @@
 #include <string>
 #include <unistd.h>
 #include "gl.hpp"
+#include <png.h>
 
 //#include "font8x8_extended.h" //used when i will move other things and get to make it fully luable
 //font test, temporarily being here as i was not able to include it for some reason..
 //the most weird thing with is that characters get offsetted by 0x02 when going farther than 0x7F.
 //it is a really weird bug that I still havent figured out why it happens
-char font_extended[256][8] = {
+signed char font_extended[256][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0000 (nul)
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0001 (SOH)
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0002 (STX)
@@ -311,7 +312,7 @@ void dimscreen(uint8_t *data, int amount){
 
 //putchar used to put a single letter on a specific x y pixel position
 void putchar(uint8_t *data, int xPos, int yPos, char letter, int red, int green, int blue) {
-	char *bitmap = font_extended[letter];
+	signed char *bitmap = font_extended[letter];
     for (int y=0; y < 8; y++) {
     	for (int x=0; x < 8; x++) {
     		int set = bitmap[y] & 1 << x;
@@ -454,7 +455,7 @@ void putpixelxl(uint8_t *data, int x, int y, int r, int g, int b) {
 }*/
 
 // puticon function that places a bmp image in a specified x,y position
-void puticon(uint8_t *data, int x, int y, const char *filename, bool transparency, bool compatibility) {
+void putbmp(uint8_t *data, int x, int y, const char *filename, bool transparency, bool compatibility) {
    		char fileSpec[strlen(filename)+1];
     	snprintf(fileSpec, sizeof(fileSpec), "%s", filename);
 		FILE* f = fopen(fileSpec, "rb"); //otvoriť súbor
@@ -503,7 +504,7 @@ void puticon(uint8_t *data, int x, int y, const char *filename, bool transparenc
 }
 
 //putbg function to fill the background with a specified image
-void putbg(uint8_t *data, const char *filename){
+void putbmpbg(uint8_t *data, const char *filename){
 	char fileSpec[strlen(filename)+1];
     snprintf(fileSpec, sizeof(fileSpec), "%s", filename);
 	FILE* f = fopen(fileSpec, "rb"); //otvoriť súbor
@@ -521,4 +522,64 @@ void putbg(uint8_t *data, const char *filename){
     	}
 	}
 	free(BMPdata); //never forget to close all arrays or "you will be memoryleak shamed to end of your life". Ok that one was supposed to be a joke.
+}
+
+float clip(float n, float lower, float upper) {
+  return std::max(lower, std::min(n, upper));
+}
+
+void putpng(uint8_t *data, int x, int y, const char *filename, int blendmode){
+	char fileSpec[strlen(filename)+1];
+    snprintf(fileSpec, sizeof(fileSpec), "%s", filename);
+	FILE* fp = fopen(fileSpec, "rb"); //otvoriť súbor
+    png_structp	png_ptr;
+    png_infop info_ptr;
+    png_uint_32 width, height;
+    int bit_depth, color_type, interlace_method, compression_method, filter_method;
+    png_bytepp rows;
+    if (! fp) {
+	printf ("[gl] Cannot open '%s'\n", filename);
+    }
+    png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (! png_ptr) {
+	printf ("[gl] Cannot create PNG read structure");
+    }
+    info_ptr = png_create_info_struct (png_ptr);
+    if (! png_ptr) {
+	printf ("[gl] Cannot create PNG info structure");
+    }
+    png_init_io (png_ptr, fp);
+    png_read_png (png_ptr, info_ptr, 0, 0);
+    png_get_IHDR (png_ptr, info_ptr, & width, & height, & bit_depth, & color_type, & interlace_method, & compression_method, & filter_method);
+    rows = png_get_rows (png_ptr, info_ptr);
+    png_bytep row;
+    for (int j = 0; j < height; j++) {
+		row = rows[j];
+		for(int i=0; i < width; i++) {
+   			int r = rows[j][i*4],
+    		   g = rows[j][i*4+1], 
+    		   b = rows[j][i*4+2], 
+    		   a = rows[j][i*4+3];
+
+			if(blendmode == 0){ //normal blend mode, the math behind this is weird. I still don't understand how and why this works
+				data[((i+x)+(j+y)*320)*3] = (r*a + data[((i+x)+(j+y)*320)*3]*(255-a) + 128) / 255;
+   				data[((i+x)+(j+y)*320)*3+1] = (g*a + data[((i+x)+(j+y)*320)*3+1]*(255-a) + 128) / 255;
+   				data[((i+x)+(j+y)*320)*3+2] = (b*a + data[((i+x)+(j+y)*320)*3+2]*(255-a) + 128) / 255;
+   			}else if (blendmode == 1){ //linear dodge (add) blend mode, the work behind this one is weird too, i don't understand it as well
+   				if(a == 255){
+   					data[((i+x)+(j+y)*320)*3] = r * a / 255;
+   					data[((i+x)+(j+y)*320)*3+1] = g * a / 255;
+   					data[((i+x)+(j+y)*320)*3+2] = b * a / 255;
+   				}else{
+   					data[((i+x)+(j+y)*320)*3] = clip((data[((i+x)+(j+y)*320)*3]) + r * a / 255, 0,255);
+   					data[((i+x)+(j+y)*320)*3+1] = clip((data[((i+x)+(j+y)*320)*3+1]) + g * a / 255, 0,255);
+   					data[((i+x)+(j+y)*320)*3+2] = clip((data[((i+x)+(j+y)*320)*3+2]) + b * a / 255, 0,255);
+   				}
+   			}
+		}
+    }
+    
+    png_destroy_read_struct(&png_ptr, &info_ptr, &info_ptr);
+	fclose(fp);
+
 }

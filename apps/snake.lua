@@ -4,6 +4,7 @@ app = {};
 app_name = "Snake"
 app_desc = "Snake game"
 app_version = 1.0
+app_icon = "apps/snake.png"
 
 local xMax = math.floor( 128 / 6 ) - 1
 local yMax = math.floor( 96 / 8 ) - 1
@@ -163,6 +164,10 @@ end
 
 function app:getVersion()
 	return app_version
+end
+
+function app:getIcon()
+	return app_icon
 end
 
 return app

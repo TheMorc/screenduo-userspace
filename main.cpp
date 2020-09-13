@@ -86,9 +86,9 @@ int LVM_render(lua_State* L){
 	return 0;
 }
 
-int LVM_puticon(lua_State* L){
+int LVM_putbmp(lua_State* L){
 	if(lua_gettop(L) != 5) return -1;
-	puticon(data,lua_tonumber(L,1),lua_tonumber(L,2),lua_tostring(L,3), lua_toboolean(L,4), lua_toboolean(L,5));
+	putbmp(data,lua_tonumber(L,1),lua_tonumber(L,2),lua_tostring(L,3), lua_toboolean(L,4), lua_toboolean(L,5));
 	return 0;
 }
 
@@ -110,9 +110,9 @@ int LVM_putchar(lua_State* L){
 	return 0;
 }
 
-int LVM_putbg(lua_State* L){
+int LVM_putbmpbg(lua_State* L){
 	if(lua_gettop(L) != 1) return -1;
-	putbg(data,lua_tostring(L,1));
+	putbmpbg(data,lua_tostring(L,1));
 	return 0;
 }
 
@@ -137,6 +137,12 @@ int LVM_clearscreen(lua_State* L){
 int LVM_usleep(lua_State* L){
 	if(lua_gettop(L) != 1) return -1;
 	usleep(lua_tonumber(L,1));
+	return 0;
+}
+
+int LVM_putpng(lua_State* L){
+	if(lua_gettop(L) != 3) return -1;
+	putpng(data,lua_tonumber(L,1),lua_tonumber(L,2),lua_tostring(L,3));
 	return 0;
 }
 
@@ -228,8 +234,8 @@ int main(int argc, char **argv) {
 	luaL_openlibs(LVM);
 	
 	lua_register(LVM, "render", LVM_render);
-	lua_register(LVM, "puticon",LVM_puticon);
-	lua_register(LVM, "putbg", LVM_putbg);
+	lua_register(LVM, "putbmp",LVM_putbmp);
+	lua_register(LVM, "putbmpbg", LVM_putbmpbg);
 	lua_register(LVM, "putpixel",LVM_putpixel);
 	lua_register(LVM, "putchar",LVM_putchar);
 	lua_register(LVM, "putpixelxl", LVM_putpixelxl);
@@ -237,6 +243,7 @@ int main(int argc, char **argv) {
 	lua_register(LVM, "dimscreen",LVM_dimscreen);
 	lua_register(LVM, "clearscreen",LVM_clearscreen);
 	lua_register(LVM, "usleep",LVM_usleep);
+	lua_register(LVM, "putpng", LVM_putpng);
 	
 	if(processLua(LVM, luaL_dofile(LVM, "Scripts/settings.lua")))
 	{ 
@@ -431,7 +438,7 @@ int main(int argc, char **argv) {
 			else if(SDLemu)
 				_EMU::QuitKeyHandler();
 		
-        	putbg(data, "Resources/Muf.bmp");
+        	putbmpbg(data, "Resources/Muf.bmp");
 			
 			if(SDLandlibusb){ //write using libusb, else SDL
 				_lusb::dev_write(device, image, sizeof(image));
@@ -457,7 +464,7 @@ int main(int argc, char **argv) {
 			else if(SDLemu)
 				_EMU::QuitKeyHandler();
 		
-        	putbg(data, "screen.bmp");
+        	putbmpbg(data, "screen.bmp");
 			
 			if(SDLandlibusb){ //write using libusb, else SDL
 				_lusb::dev_write(device, image, sizeof(image));
