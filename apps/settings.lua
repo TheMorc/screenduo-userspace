@@ -1,15 +1,16 @@
 --This is the first duo app
 --This is the Settings app!
-app = {};
+settings = {};
 app_name = "Settings"
 app_desc = "A simple app to change settings."
+app_version = 1.0
 
 x = 0
 y = 0
 
 dimscreen(25)
 
-function app:update()
+function settings:update()
 
 	x = x + 1
 	putchar(122, x, 48 + math.floor((os.date("%H")/10)%10), 255, 255, 255); --first number
@@ -20,18 +21,22 @@ function app:update()
 	--print(x)
 end
 
-function app:buttonPress(btn)
+function settings:buttonPress(btn)
 	if btn == 6 then
 		app_close()
     end
 end
 
-function app:getName()
+function settings:getName()
 	return app_name
 end
 
-function app:getDesc()
+function settings:getDesc()
 	return app_desc
 end
 
-return app
+function settings:getVersion()
+	return app_version
+end
+
+return settings

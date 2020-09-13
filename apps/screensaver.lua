@@ -1,15 +1,15 @@
 --Do anyone remember the screensaver portion of the UI?
 --it is now included in it's own app!
-app = {};
+screensaver = {};
 app_name = "Screensaver"
 app_desc = "a simple 7 segment screensaver type clock"
+app_version = 1.0
 
 screensaver_colon_blinking = true --set to false to disable colon blinking
-screensaver = false --set to true to enable screensaver automatically
 screensaver_a = 0
 screensaver_colon = 2
 
-function app:update()
+function screensaver:update()
 	if screensaver_a ~= 10 then --dim animation
 		screensaver_a = screensaver_a + 1
 		dimscreen(25)
@@ -43,18 +43,22 @@ function app:update()
 	end
 end
 
-function app:buttonPress(btn)
+function screensaver:buttonPress(btn)
 	if btn == 6 then
 		app_close()
     end
 end
 
-function app:getName()
+function screensaver:getName()
 	return app_name
 end
 
-function app:getDesc()
+function screensaver:getDesc()
 	return app_desc
 end
 
-return app
+function screensaver:getVersion()
+	return app_version
+end
+
+return screensaver

@@ -57,9 +57,9 @@ function apps_fetch(folder)
     	end
     	fetchedapp = require(class)
     	app_count = app_count + 1
- 		apps[app_count]={["class"]=class,["name"]=fetchedapp:getName(), ["desc"]=fetchedapp:getDesc()}
+ 		apps[app_count]={["class"]=class,["name"]=fetchedapp:getName(), ["desc"]=fetchedapp:getDesc(), ["version"]=fetchedapp:getVersion()}
  		if logINFO then
-			print("[screenduo] (" .. fetchedapp:getName() .. ") registered sucessfully")
+			print("[screenduo] (" .. fetchedapp:getName() .. " v" .. fetchedapp:getVersion() .. ") registered sucessfully")
 		end
 		package.loaded[class] = nil
 		_G[class] = nil
