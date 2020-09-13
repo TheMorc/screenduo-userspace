@@ -6,7 +6,7 @@ SDL = false
 --Text mode SDL delay to not quit the window right away as written pixel data stays on duo infinitely until rewrite(default: 5000)--
 SDLTextDelay = 5000
 
---Use both libusb and SDL? To try both at once to see if everything behaves as it should--
+--Use both libusb and SDL? To try both at once to see if everything behaves and looks as it should--
 SDLandlibusb = false
 
 --Show log info? Errors will be shown regardless of the setting--

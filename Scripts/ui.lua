@@ -11,15 +11,19 @@
 
 --app functions and variables below, you can customize and modify the app module behaviour for your own purposes
 app_opened = false
-app_class = ""
-app = nil
+app_class = "" --class name of app
+app = nil --selected app
+apps = {} --app table
+app_count = 0 --app count
 
 --use this function to assign and open an app
 function app_open(appname)
 	app_opened = true
 	app_class = appname
-	app = require(appname)
-	print("[screenduo] opening " .. appname .. " (" .. app:getName() .. ")")
+	app = assert(require(appname))
+	if logINFO then
+		print("[screenduo] opening " .. appname .. " (" .. app:getName() .. ")")
+	end
 	app_update(appname)
 end
 
@@ -30,41 +34,55 @@ end
 
 --this is usually called from the app to close and unload the app
 function app_close()
-	print("[screenduo] closing " .. app_class .. " (" .. app:getName() .. ")")
+	if logINFO then
+		print("[screenduo] closing " .. app_class .. " (" .. app:getName() .. ")")
+	end
 	app_opened = false --tell UI function to "close" app
 	package.loaded[app_class] = nil
 	_G[app_class] = nil
 end
 
-package.cpath = 'apps/?.lua;scripts/?.lua'
-apps = {}
-app_count = 0
-function apps_fetch()
-	local f = io.popen("ls -td apps/*.lua | head") --macOS(Unix/Linux compatible) directory listing
+--apps_fetch function to load all apps into app table for UI
+package.cpath = 'scripts/?.lua;'
+function apps_fetch(folder)
+	package.cpath = folder .. '?.lua;' .. package.cpath --reconfigure the search path to include lua from this folder
+	if logINFO then
+		print("[screenduo] loading apps from '" .. folder .. "'")
+	end
+	local f = io.popen("ls -td ".. folder .."*.lua | head") --macOS(Unix/Linux compatible) directory listing | needs to be fixed for Windows
  	for filename in f:lines() do
     	local class = filename:sub(1,filename:len()-4)
+    	if logINFO then
+			print("[screenduo] registering " .. class .. " ")
+    	end
     	fetchedapp = require(class)
     	app_count = app_count + 1
  		apps[app_count]={["class"]=class,["name"]=fetchedapp:getName(), ["desc"]=fetchedapp:getDesc()}
-		print("[screenduo] registering (" .. fetchedapp:getName() .. ") to app list")
+ 		if logINFO then
+			print("[screenduo] (" .. fetchedapp:getName() .. ") registered sucessfully")
+		end
 		package.loaded[class] = nil
 		_G[class] = nil
  	end
- 	print("[screenduo] app count is " .. app_count)
+ 	if logINFO then
+ 		print("[screenduo] " .. app_count .. " apps registered successfully")
+ 	end
 end
+
+require("scripts.settings") --load all settings from scripts/settings.lua | mandatory for logINFO to not show log when disabled
 
 --UI variables
 colon_blinking = true --set to false to disable colon blinking
 colon = 2
-app_index = 1
+app_index = 1 --current selected app
 
 --this is a preUI load stage that was also used in main.cpp before but left unused
 function preUI()
 	--putbg("Resources/ui_background.bmp")
-	--render(false, false)
+	--render(false)
 end
 
-apps_fetch()
+apps_fetch("apps/") --load apps
 
 --this is the main UI function that is being looped in the C++ code!
 function UI()
@@ -100,23 +118,25 @@ function UI()
 	putchar(143, 2, 48 + math.floor((os.date("%M")/10)%10), 255, 255, 255); --third number
 	putchar(151, 2, 48 + math.floor((os.date("%M"))%10), 255, 255, 255); --fourth number
 
-	render(false, false)
+	render(false)
 end
 
 --button event function executed after every successful button press either using SDL or libusb
 function buttonPress(btn)
     --lua button press print
-    if btn == 1 then print(btn .. " (dpad left)")
-    elseif btn == 2 then print(btn .. " (dpad right)")
-    elseif btn == 3 then print(btn .. " (dpad up)")
-    elseif btn == 4 then print(btn .. " (dpad down)")
+    if logINFO then
+    	if btn == 1 then print(btn .. " (dpad left)")
+    	elseif btn == 2 then print(btn .. " (dpad right)")
+    	elseif btn == 3 then print(btn .. " (dpad up)")
+    	elseif btn == 4 then print(btn .. " (dpad down)")
     
-    elseif btn == 6 then print(btn .. " (back)")
-    elseif btn == 0 then print(btn .. " (enter)")
-    
-    elseif btn == 12 then print(btn .. " (app 1)")
-    elseif btn == 13 then print(btn .. " (app 2)")
-    else print(btn .. " (?? what button is this)")
+    	elseif btn == 6 then print(btn .. " (back)")
+    	elseif btn == 0 then print(btn .. " (enter)")
+    	
+    	elseif btn == 12 then print(btn .. " (app 1)")
+    	elseif btn == 13 then print(btn .. " (app 2)")
+    	else print(btn .. " (?? what button is this)")
+    	end
     end
     
     if app_opened then --check for opened app, if not go to ui buttons

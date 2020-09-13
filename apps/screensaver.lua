@@ -13,7 +13,7 @@ function app:update()
 	if screensaver_a ~= 10 then --dim animation
 		screensaver_a = screensaver_a + 1
 		dimscreen(25)
-		render(false, false) --why the render is here? it is because we dont render it on the end of the ui
+		render(false) --why the render is here? it is because we dont render it on the end of the ui
 	else --7 segment clock, this is much much much simpler than the C++ code was
 		clearscreen() --clearing the screen (mainly for the colon so it can disappear without needing to put a blank bmp there)
 		
@@ -38,7 +38,7 @@ function app:update()
 		puticon(173,72,"apps/screensaver/ss_" .. math.floor((os.date("%M")/10)%10) .. ".bmp", false, true) --third number
 		puticon(239,72,"apps/screensaver/ss_" .. math.floor((os.date("%M"))%10) .. ".bmp", false, true) --fourth number
 		
-		render(false, false) --there is a delay between animation and rendering this due to the usleep, so we render first and then sleep
+		render(false) --there is a delay between animation and rendering this due to the usleep, so we render first and then sleep
 		usleep(250000) --sleep interval for the blinking colon
 	end
 end

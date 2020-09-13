@@ -75,14 +75,14 @@ bool SDLemu,logINFO,showInfo,SDLandlibusb = false; //These variables are changed
 
 //LVM cross functions
 int LVM_render(lua_State* L){
-	if(lua_gettop(L) != 2) return -1;
+	if(lua_gettop(L) != 1) return -1;
 	if(SDLandlibusb){ //write both
     	_lusb::dev_write(device, image, sizeof(image));
-	   	_EMU::Render(data, lua_toboolean(L,1), lua_toboolean(L,2));
+	   	_EMU::Render(data, lua_toboolean(L,1), true);
     }else if(!SDLemu) //write to dduo
     	_lusb::dev_write(device, image, sizeof(image));
     else
-	   	_EMU::Render(data, lua_toboolean(L,1), lua_toboolean(L,2)); //else render using SDL
+	   	_EMU::Render(data, lua_toboolean(L,1), false); //else render using SDL
 	return 0;
 }
 

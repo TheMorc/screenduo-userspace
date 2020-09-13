@@ -16,7 +16,7 @@ function app:update()
 	--putchar(130, x, 48 + math.floor((os.date("%H"))%10), 255, 255, 255); --second number
 	--putchar(143, x, 48 + math.floor((os.date("%M")/10)%10), 255, 255, 255); --third number
 	--putchar(151, x, 48 + math.floor((os.date("%M"))%10), 255, 255, 255); --forth number
-	render(false, false)
+	render(false)
 	--print(x)
 end
 
