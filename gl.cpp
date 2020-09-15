@@ -561,7 +561,9 @@ void putpng(uint8_t *data, int x, int y, const char *filename, int blendmode){
     		   b = rows[j][i*4+2], 
     		   a = rows[j][i*4+3];
 
-			if(blendmode == 0){ //normal blend mode, the math behind this is weird. I still don't understand how and why this works
+			if(blendmode == 0){ //normal blend mode, not sure if it is the most efficient or the most correct way but it does it's job pretty well.
+				//hard work behind the math equation goes to TheGreatCthulhu
+				//https://forums.codeguru.com/showthread.php?497515-Math-to-merge-two-RGBA-bitmaps&p=1942714#post1942714
 				data[((i+x)+(j+y)*320)*3] = (r*a + data[((i+x)+(j+y)*320)*3]*(255-a) + 128) / 255;
    				data[((i+x)+(j+y)*320)*3+1] = (g*a + data[((i+x)+(j+y)*320)*3+1]*(255-a) + 128) / 255;
    				data[((i+x)+(j+y)*320)*3+2] = (b*a + data[((i+x)+(j+y)*320)*3+2]*(255-a) + 128) / 255;

@@ -6,19 +6,29 @@ app_desc = "A simple app to change settings."
 app_version = 1.0
 app_icon = "apps/sampleapp.png"
 
+controls = {}
+selected_control_id = 2
 
-
-putpng(30,20,"resources/window.png")
+function settings:init()
+	app_allowbgcomposition = true
+	assert(require("scripts.ui.UIWindow")) 
+	assert(require("scripts.ui.UIButton")) 
 	
-function settings:update()
+	controls[1] = UIWindow:new{}
+	controls[1]:setPosition(20,30)
+	
+	controls[2] = UIButton:new{}
+	controls[2]:setPosition(55,30)
+end
 
-	--putpng(30,20,"resources/window.png")
+function settings:update()
+	drawControls(controls)
 	render(false)
 end
 
 function settings:buttonPress(btn)
-	if btn == 6 then
-		app_close()
+	if btn == 6 then app_close() 
+	elseif btn == 0 then controls[selected_control_id]:event()
     end
 end
 

@@ -8,64 +8,12 @@
 	--dimscreen(25) --args: amount
 	--puticon(239,20,"Resources/button.bmp", true, true) --args: x, y, filename, transparency, compatibility
 	--putchar(122, 2, 48, 255, 255, 255); --x, y, letter, r, g, b color(0-255)
+assert(require("scripts.utils")) --load functions from scripts/utils.lua | mandatory for apps_fetch and for ui things
+assert(require("scripts.settings")) --load all settings from scripts/settings.lua | mandatory for logINFO to not show log when disabled and app1/app2 buttons to work
+assert(require("scripts.ui.UIBaseControl")) 
+	assert(require("scripts.ui.UIWindow")) 
+	assert(require("scripts.ui.UIButton")) 
 
---app functions and variables below, you can customize and modify the app module behaviour for your own purposes
-app_opened = false
-app_class = "" --class name of app
-app = nil --selected app
-apps = {} --app table
-app_count = 0 --app count
-
---use this function to assign and open an app
-function app_open(appname)
-	app_opened = true
-	app_class = appname
-	app = assert(require(appname))
-	if logINFO then
-		print("[screenduo] opening " .. appname .. " (" .. app:getName() .. ")")
-	end
-	app:update()
-end
-
---this is usually called from the app to close and unload the app
-function app_close()
-	if logINFO then
-		print("[screenduo] closing " .. app_class .. " (" .. app:getName() .. ")")
-	end
-	app_opened = false --tell UI function to "close" app
-	package.loaded[app_class] = nil
-	_G[app_class] = nil
-end
-
---apps_fetch function to load all apps into app table for UI
-package.cpath = 'scripts/?.lua;'
-function apps_fetch(folder)
-	package.cpath = folder .. '?.lua;' .. package.cpath --reconfigure the search path to include lua from this folder
-	if logINFO then
-		print("[screenduo] loading apps from '" .. folder .. "'")
-	end
-	local f = io.popen("ls ".. folder .."*.lua | head") --macOS(Unix/Linux compatible) directory listing | needs to be fixed for Windows
- 	for filename in f:lines() do
-    	local class = filename:sub(1,filename:len()-4)
-    	if logINFO then
-			print("[screenduo] registering " .. class .. " ")
-    	end
-    	fetchedapp = require(class)
-    	app_count = app_count + 1
- 		apps[app_count]={["class"]=class,["name"]=fetchedapp:getName(), ["desc"]=fetchedapp:getDesc(), ["version"]=fetchedapp:getVersion(), ["icon"]=fetchedapp:getIcon()}
- 		if logINFO then
-			print("[screenduo] (" .. fetchedapp:getName() .. " v" .. fetchedapp:getVersion() .. ") registered sucessfully")
-		end
-		app_class = ""
-		package.loaded[class] = nil
-		_G[class] = nil
- 	end
- 	if logINFO then
- 		print("[screenduo] " .. app_count .. " apps registered successfully")
- 	end
-end
-
-require("scripts.settings") --load all settings from scripts/settings.lua | mandatory for logINFO to not show log when disabled
 
 --UI variables
 colon_blinking = true --set to false to disable colon blinking
@@ -82,7 +30,9 @@ apps_fetch("apps/") --load apps from specific folder
 
 --this is the main UI function that is being looped in the C++ code!
 function UI()
-	if app_opened then --if is an app opened, go straight into the app UI function and do not proceed into the UI function
+	if app_allowbgcomposition then --if is an app opened, go straight into the app UI function and do not proceed into the UI function
+		app:update()
+	elseif app_opened then
 		app:update()
 		return
 	end
@@ -118,7 +68,10 @@ function UI()
 	putchar(143, 2, 48 + math.floor((os.date("%M")/10)%10), 255, 255, 255); --third number
 	putchar(151, 2, 48 + math.floor((os.date("%M"))%10), 255, 255, 255); --fourth number
 
-	render(false)
+	if not app_allowbgcomposition then --if is an app opened, go straight into the app UI function and do not proceed into the UI function
+		render(false)
+	end
+	--app_open("apps/settings'")
 end
 
 --button event function executed after every successful button press either using SDL or libusb

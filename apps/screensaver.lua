@@ -10,6 +10,9 @@ screensaver_colon_blinking = true --set to false to disable colon blinking
 screensaver_a = 0
 screensaver_colon = 2
 
+function screensaver:init()
+end
+
 function screensaver:update()
 	if screensaver_a ~= 10 then --dim animation
 		screensaver_a = screensaver_a + 1

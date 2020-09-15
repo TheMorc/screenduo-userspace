@@ -7,6 +7,8 @@ app_desc = "A sample app."
 app_version = 1.0
 app_icon = "apps/sampleapp.png"
 
+function sampleapp:init()
+end
 
 function sampleapp:update()
 end

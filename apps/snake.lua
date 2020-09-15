@@ -1,6 +1,6 @@
 --Simple snake example game
 --heavily modified port of https://github.com/elua/snake/blob/master/snake.lua
-app = {};
+snake = {};
 app_name = "Snake"
 app_desc = "Snake game"
 app_version = 1.1
@@ -118,6 +118,7 @@ local function draw_walls()
 end
 
 
+function snake:init()
 
   clearscreen()
   food = false
@@ -144,8 +145,9 @@ end
     putpixel(( Tail.x + ( i * Tail.dx ) ) * 6, ( Tail.y + ( i * Tail.dy ) ) * 8, 255,255,255 ) --args: x, y, r, g, b color(0-255)
   end
   create_food()
+end
 
-function app:update()
+function snake:update()
 	if running == true then
     	direction = dir
     	move()
@@ -167,7 +169,7 @@ function app:update()
 	render(false)
 end
 
-function app:buttonPress(btn)
+function snake:buttonPress(btn)
     if btn == 2 then dir = "right"   Head.dx = 1   Head.dy = 0
     elseif btn == 1 then  dir = "left"   Head.dx = -1  Head.dy = 0
     elseif btn == 3 then dir = "up"   Head.dx = 0   Head.dy = -1
@@ -177,20 +179,20 @@ function app:buttonPress(btn)
     end
 end
 
-function app:getName()
+function snake:getName()
 	return app_name
 end
 
-function app:getDesc()
+function snake:getDesc()
 	return app_desc
 end
 
-function app:getVersion()
+function snake:getVersion()
 	return app_version
 end
 
-function app:getIcon()
+function snake:getIcon()
 	return app_icon
 end
 
-return app
+return snake
