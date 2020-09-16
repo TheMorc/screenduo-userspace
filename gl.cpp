@@ -538,15 +538,15 @@ void putpng(uint8_t *data, int x, int y, const char *filename, int blendmode){
     int bit_depth, color_type, interlace_method, compression_method, filter_method;
     png_bytepp rows;
     if (! fp) {
-	printf ("[gl] Cannot open '%s'\n", filename);
+		printf ("[gl] Cannot open '%s'\n", filename);
     }
     png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (! png_ptr) {
-	printf ("[gl] Cannot create PNG read structure");
+		printf ("[gl] Cannot create PNG read structure");
     }
     info_ptr = png_create_info_struct (png_ptr);
     if (! png_ptr) {
-	printf ("[gl] Cannot create PNG info structure");
+		printf ("[gl] Cannot create PNG info structure");
     }
     png_init_io (png_ptr, fp);
     png_read_png (png_ptr, info_ptr, 0, 0);
@@ -580,8 +580,6 @@ void putpng(uint8_t *data, int x, int y, const char *filename, int blendmode){
    			}
 		}
     }
-    
     png_destroy_read_struct(&png_ptr, &info_ptr, &info_ptr);
-	fclose(fp);
-
+	fclose(fp); //destroying and freeing everything to not leak memory (fun fact: it actually force closed near 100MB RAM usage, not like the bmp method that was leaking and leaking and leaking..)
 }

@@ -13,6 +13,9 @@ assert(require("scripts.settings")) --load all settings from scripts/settings.lu
 assert(require("scripts.ui.UIBaseControl")) 
 	assert(require("scripts.ui.UIWindow")) 
 	assert(require("scripts.ui.UIButton")) 
+	assert(require("scripts.ui.UICheckbox")) 
+	assert(require("scripts.ui.UIRadiobutton")) 
+	assert(require("scripts.ui.UIProgressbar")) 
 
 
 --UI variables
@@ -24,6 +27,7 @@ app_index = 1 --current selected app
 function preUI()
 	--putpngbg("apps/sampleapp.png")
 	--render(false)
+	app_open("apps.settings")
 end
 
 apps_fetch("apps/") --load apps from specific folder
@@ -31,7 +35,6 @@ apps_fetch("apps/") --load apps from specific folder
 --this is the main UI function that is being looped in the C++ code!
 function UI()
 	if app_allowbgcomposition then --if is an app opened, go straight into the app UI function and do not proceed into the UI function
-		app:update()
 	elseif app_opened then
 		app:update()
 		return
@@ -68,6 +71,10 @@ function UI()
 	putchar(143, 2, 48 + math.floor((os.date("%M")/10)%10), 255, 255, 255); --third number
 	putchar(151, 2, 48 + math.floor((os.date("%M"))%10), 255, 255, 255); --fourth number
 
+	if app_allowbgcomposition then 
+		app:update()
+	end
+	
 	if not app_allowbgcomposition then --if is an app opened, go straight into the app UI function and do not proceed into the UI function
 		render(false)
 	end

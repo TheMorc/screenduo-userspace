@@ -66,7 +66,6 @@ bool processLua(lua_State *L, int r) //function to process the Lua code and prin
 	{
 		std::string errormsg = lua_tostring(L, -1);
 		printf("[Lua VM] %s\n", errormsg.c_str());
-		return false;
 	}
 	return true;
 }
@@ -398,7 +397,6 @@ int main(int argc, char **argv) {
 				if (lua_pcall(LVM, 0, 0, 0) != LUA_OK){
 					std::string errormsg = lua_tostring(LVM, -1);
 					printf("[Lua VM] %s\n", errormsg.c_str());
-					return false;
 				}
 			}
 			
@@ -420,7 +418,6 @@ int main(int argc, char **argv) {
 					if (lua_pcall(LVM, 0, 0, 0) != LUA_OK){
 						std::string errormsg = lua_tostring(LVM, -1);
 						printf("[Lua VM] %s\n", errormsg.c_str());
-						return false;
 					}
 				}
 			}
@@ -430,15 +427,21 @@ int main(int argc, char **argv) {
 	else if(strcmp(argv[1],"--cat")==0)
 	{
 		if(logINFO)
-        	printf("[screenduo] Muf\n");
-		
+        	printf("[screenduo] Cat\n");
+		int catcounter = 0;
 		while (1) {
 			if(SDLandlibusb)
 				_EMU::QuitKeyHandler();
 			else if(SDLemu)
 				_EMU::QuitKeyHandler();
-		
-        	putbmpbg(data, "Resources/Muf.bmp");
+				
+			if(catcounter == 0){
+        		putbmpbg(data, "Resources/Muf.bmp");
+				catcounter++;
+			}else if(catcounter == 1){
+				putpng(data, 0,0,"Resources/Mojo&Bojo.png");
+				catcounter = 0;
+			}
 			
 			if(SDLandlibusb){ //write using libusb, else SDL
 				_lusb::dev_write(device, image, sizeof(image));
@@ -447,7 +450,8 @@ int main(int argc, char **argv) {
 				_lusb::dev_write(device, image, sizeof(image));
 			else
 				_EMU::Render(data);
-    			
+				
+			usleep(2000000);
     	}
 	}
 	else if(strcmp(argv[1],"--screen")==0)

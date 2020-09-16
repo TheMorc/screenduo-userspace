@@ -16,9 +16,17 @@ end
 function UIBaseControl:draw()
 end
 
-function UIBaseControl:event()
+function UIBaseControl:pressEvent(oo)
+	oo = oo or self
 	if logINFO then
-    	print("[screenduo] press event called on " .. self.name .. " (".. self.text .. ")")
+    	print("[screenduo] press event called on " .. oo.name .. " (".. oo.text .. ")")
+    end
+end
+
+function UIBaseControl:focusEvent(oo)
+	oo = oo or self
+	if logINFO then
+    	print("[screenduo] focus event called on " .. oo.name .. " (".. oo.text .. ")")
     end
 end
 
