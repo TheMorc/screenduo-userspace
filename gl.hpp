@@ -11,10 +11,10 @@
 //#include "font8x8_extended.h"
 
 void putbmp(uint8_t *data, int x, int y, const char *filename, bool transparency = false, bool compatibility = false);
-void puttext(uint8_t *data, int Xp, int Yp, const char *text);
 void putpixelxl(uint8_t *data, int x, int y, int r, int g, int b);
 void putpixel(uint8_t *data, int x, int y, char r, char g, char b);
 void putchar(uint8_t *data, int x, int y, char letter, int red = 255, int green = 255, int blue = 255);
+void putcharxl(uint8_t *data, int x, int y, char letter, int red = 255, int green = 255, int blue = 255);
 void fillscreen(uint8_t *data, char color);
 void clearscreen(uint8_t *data);
 void dimscreen(uint8_t *data, int amount = 25);

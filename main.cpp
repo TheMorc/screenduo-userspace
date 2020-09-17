@@ -109,6 +109,12 @@ int LVM_putchar(lua_State* L){
 	return 0;
 }
 
+int LVM_putcharxl(lua_State* L){
+	if(lua_gettop(L) != 6) return -1;
+	putcharxl(data,lua_tonumber(L,1),lua_tonumber(L,2),lua_tonumber(L,3), lua_tonumber(L,4), lua_tonumber(L,5), lua_tonumber(L,6));
+	return 0;
+}
+
 int LVM_putbmpbg(lua_State* L){
 	if(lua_gettop(L) != 1) return -1;
 	putbmpbg(data,lua_tostring(L,1));
@@ -237,6 +243,7 @@ int main(int argc, char **argv) {
 	lua_register(LVM, "putbmpbg", LVM_putbmpbg);
 	lua_register(LVM, "putpixel",LVM_putpixel);
 	lua_register(LVM, "putchar",LVM_putchar);
+	lua_register(LVM, "putcharxl",LVM_putcharxl);
 	lua_register(LVM, "putpixelxl", LVM_putpixelxl);
 	lua_register(LVM, "fillscreen",LVM_fillscreen);
 	lua_register(LVM, "dimscreen",LVM_dimscreen);

@@ -4,7 +4,7 @@ settings = {};
 app_name = "Settings"
 app_desc = "A simple app to change settings."
 app_version = 1.1
-app_icon = "apps/sampleapp.png"
+app_icon = "apps/settings.png"
 
 controls = {}
 checkboxTable = {}
@@ -16,6 +16,7 @@ function settings:init()
 	
 	controls[1] = UIWindow:new{}
 	controls[1]:setPosition(20,30)
+	controls[1].text = "Settings"
 	
 	controls[2] = UIButton:new{}
 	controls[2]:setPosition(55,30)
@@ -34,13 +35,19 @@ function settings:init()
 	
 	controls[7] = UIProgressbar:new{}
 	controls[7]:setPosition(80,80)
-	controls[7].value = 50
+	controls[7].value = 100
 	
 	control_count = controlCount(controls)
 end
 
 function settings:update()
 	drawControls(controls)
+	if controls[7].value ~= 100 then
+		controls[7].value = controls[7].value + 1
+	else
+		controls[7].value = 0
+	end
+	puttext(50,20,"test",0,255,255)
 	render(false)
 end
 

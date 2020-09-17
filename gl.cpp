@@ -316,21 +316,35 @@ void putchar(uint8_t *data, int xPos, int yPos, char letter, int red, int green,
     for (int y=0; y < 8; y++) {
     	for (int x=0; x < 8; x++) {
     		int set = bitmap[y] & 1 << x;
+    	   		putpixel(data,x+xPos,y+yPos,set ? red : 0,set ? green : 0,set ? blue : 0);
+    	}
+	}
+}
+
+void putcharxl(uint8_t *data, int xPos, int yPos, char letter, int red, int green, int blue) {
+	signed char *bitmap = font_extended[letter];
+    for (int y=0; y < 8; y++) {
+    	for (int x=0; x < 8; x++) {
+    		int set = bitmap[y] & 1 << x;
     	   		putpixelxl(data,x+xPos,y+yPos,set ? red : 0,set ? green : 0,set ? blue : 0);
     	}
 	}
 }
 
-void puttext(uint8_t *data, int xPos, int yPos, const char* text){
-
-}
-
-
 //putpixel function that puts writes a single pixel to specific x,y pos using specific rgb color
 void putpixel(uint8_t *data, int x, int y, char r, char g, char b) {
-    data[(x+y*320)*3] = r;
-    data[(x+y*320)*3+1] = g;
-    data[(x+y*320)*3+2] = b;
+    if(r != 0)
+    {
+    	data[(x+y*320)*3] = r;
+    }
+    if(g != 0)
+    {
+    	data[(x+y*320)*3+1] = g;
+    }
+    if(b != 0)
+    {
+    	data[(x+y*320)*3+2] = b;
+    }
 }
 
 //this is the same function as putpixel but more customized for typing characters

@@ -8,7 +8,7 @@ function UIBaseControl:new(o)
     setmetatable(o, self)
     self.__index = self
     if logINFO then
-    	print("[screenduo] adding " .. o.name .. " to the list of controls")
+    	print("[screenduo-ui] adding " .. o.name .. " to the list of controls")
     end
     return o
 end
@@ -19,14 +19,14 @@ end
 function UIBaseControl:pressEvent(oo)
 	oo = oo or self
 	if logINFO then
-    	print("[screenduo] press event called on " .. oo.name .. " (".. oo.text .. ")")
+    	print("[screenduo-ui] press event called on " .. oo.name .. " (".. oo.text .. ")")
     end
 end
 
 function UIBaseControl:focusEvent(oo)
 	oo = oo or self
 	if logINFO then
-    	print("[screenduo] focus event called on " .. oo.name .. " (".. oo.text .. ")")
+    	print("[screenduo-ui] focus event called on " .. oo.name .. " (".. oo.text .. ")")
     end
 end
 
