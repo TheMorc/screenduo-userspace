@@ -23,10 +23,17 @@ function UIBaseControl:pressEvent(oo)
     end
 end
 
-function UIBaseControl:focusEvent(oo)
+function UIBaseControl:enterFocusEvent(oo)
 	oo = oo or self
 	if logINFO then
-    	print("[screenduo-ui] focus event called on " .. oo.name .. " (".. oo.text .. ")")
+    	print("[screenduo-ui] enter focus event called on " .. oo.name .. " (".. oo.text .. ")")
+    end
+end
+
+function UIBaseControl:exitFocusEvent(oo)
+	oo = oo or self
+	if logINFO then
+    	print("[screenduo-ui] exit focus event called on " .. oo.name .. " (".. oo.text .. ")")
     end
 end
 

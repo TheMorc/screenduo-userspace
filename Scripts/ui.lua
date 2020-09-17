@@ -55,7 +55,7 @@ function UI()
 	--app selector
   	putpng((app_index*45)-4,229,"resources/selector.png")
 	
-	if colon_blinking then
+	--[[if colon_blinking then
 		if colon == 2 then --blinking colon
 			putchar(137,2,58,255,255,255) --colon
 	   		colon = 0
@@ -63,13 +63,13 @@ function UI()
 	   	colon = colon + 1
 	else
 		putchar(137,2,58,255,255,255) --colon
-	end
+	end]]--
 		
 	
-	putchar(122, 2, 48 + math.floor((os.date("%H")/10)%10), 255, 255, 255); --first number
-	putchar(130, 2, 48 + math.floor((os.date("%H"))%10), 255, 255, 255); --second number
-	putchar(143, 2, 48 + math.floor((os.date("%M")/10)%10), 255, 255, 255); --third number
-	putchar(151, 2, 48 + math.floor((os.date("%M"))%10), 255, 255, 255); --fourth number
+	putchar(297, 213, 48 + math.floor((os.date("%H")/10)%10), 255, 255, 255); --first number
+	putchar(305, 213, 48 + math.floor((os.date("%H"))%10), 255, 255, 255); --second number
+	putchar(297, 225, 48 + math.floor((os.date("%M")/10)%10), 255, 255, 255); --third number
+	putchar(305, 225, 48 + math.floor((os.date("%M"))%10), 255, 255, 255); --fourth number
 
 	if app_allowbgcomposition then 
 		app:update()

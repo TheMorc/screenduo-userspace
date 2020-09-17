@@ -80,3 +80,15 @@ function puttext(x,y, text, r, g, b)
     	putchar(x+(i-1)*8,y, string.byte(c), r, g, b)
 	end	
 end
+
+function puttextxl(x,y, text, r, g, b)
+	--putchar(122, 2, 48, 255, 255, 255); --x, y, letter, r, g, b color(0-255)
+	for i = 1, #text do
+    local c = text:sub(i,i)
+    	putcharxl(x+(i-1)*8,y, string.byte(c), r, g, b)
+	end	
+end
+
+function remap(value, low1, high1, low2, high2)
+	return low2 + (value - low1) * (high2 - low2) / (high1 - low1)
+end

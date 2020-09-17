@@ -15,6 +15,5 @@ end
 
 function UICheckbox:pressEvent()
 	UIBaseControl:pressEvent(self)
-	
 	self.checked = not self.checked
 end
